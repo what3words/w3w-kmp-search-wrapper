@@ -1,40 +1,7 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-}
-
-kotlin {
-    androidTarget {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
-    
-    sourceSets {
-        androidMain.dependencies {
-            implementation(libs.compose.uiToolingPreview)
-            implementation(libs.androidx.activity.compose)
-        }
-        commonMain.dependencies {
-            implementation(libs.compose.runtime)
-            implementation(libs.compose.foundation)
-            implementation(libs.compose.material3)
-            implementation(libs.compose.ui)
-            implementation(libs.compose.components.resources)
-            implementation(libs.compose.uiToolingPreview)
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
-            implementation(projects.shared)
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
-    }
 }
 
 android {
@@ -62,9 +29,30 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    // Sources remain in KMP-style directories; map them to standard Android source sets
+    sourceSets {
+        getByName("main") {
+            manifest.srcFile("src/androidMain/AndroidManifest.xml")
+            kotlin.srcDirs("src/androidMain/kotlin")
+            res.srcDirs("src/androidMain/res")
+        }
+        getByName("test") {
+            kotlin.srcDirs("src/androidUnitTest/kotlin")
+        }
+    }
 }
 
 dependencies {
+    implementation(libs.compose.uiToolingPreview)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.compose.runtime)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.components.resources)
+    implementation(libs.androidx.lifecycle.viewmodelCompose)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(projects.shared)
+    testImplementation(libs.kotlin.test)
     debugImplementation(libs.compose.uiTooling)
 }
-
