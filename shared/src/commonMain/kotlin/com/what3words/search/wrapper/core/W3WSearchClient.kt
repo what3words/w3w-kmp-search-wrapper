@@ -55,15 +55,20 @@ class W3WSearchClient {
     suspend fun search(query: String): W3WResult<List<SearchResult>> {
         for (tier in config.providerTiers()) {
             val capable = tier.filter { it.canHandle(query) }
-            if (capable.isEmpty()) continue
+            if (capable.isEmpty()) continue //If no provider can handle, try next tier
 
-            val results = coroutineScope {
+            val rawResults = coroutineScope {
                 capable.map { async { it.executeSearch(query) } }.awaitAll()
             }
-                .filterIsInstance<W3WResult.Success<List<SearchResult>>>()
-                .flatMap { it.value }
 
-            return W3WResult.Success(results)
+            val successes = rawResults.filterIsInstance<W3WResult.Success<List<SearchResult>>>()
+            if (successes.isEmpty()) {
+                // All capable providers failed — surface the first failure rather than silently
+                // returning an empty success.
+                return rawResults.first()
+            }
+
+            return W3WResult.Success(successes.flatMap { it.value })
         }
 
         return W3WResult.Failure(ProviderNotFoundException())

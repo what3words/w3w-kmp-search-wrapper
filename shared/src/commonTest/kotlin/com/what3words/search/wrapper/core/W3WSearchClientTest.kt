@@ -108,6 +108,37 @@ class W3WSearchClientTest {
         assertEquals("ok", result.value.first().providerId)
     }
 
+    @Test
+    fun search_returnsFailureWhenAllProvidersInTierFail() = runTest {
+        val client = buildClient {
+            install(pluginFor(failingProvider("fail1")), priority = 5)
+            install(pluginFor(failingProvider("fail2")), priority = 5)
+        }
+
+        val result = client.search("test")
+
+        assertIs<W3WResult.Failure<List<SearchResult>>>(result)
+        assertIs<ProviderNotFoundException>(result.error)
+    }
+
+    @Test
+    fun search_doesNotFallThroughToNextTierWhenHigherTierProvidersAllFail() = runTest {
+        // Higher tier has capable providers that all fail at runtime — the lower tier should
+        // never be reached, because canHandle is the only criterion for tier fallback.
+        val client = buildClient {
+            install(pluginFor(failingProvider("high-fail")), priority = 10)
+            install(
+                pluginFor(fakeProvider("low", results = listOf(suggestion("low")))),
+                priority = 1
+            )
+        }
+
+        val result = client.search("test")
+
+        assertIs<W3WResult.Failure<List<SearchResult>>>(result)
+        assertIs<ProviderNotFoundException>(result.error)
+    }
+
     // --- search(): canHandle filtering ---
 
     @Test
