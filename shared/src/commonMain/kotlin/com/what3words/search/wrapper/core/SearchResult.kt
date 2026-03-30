@@ -32,6 +32,6 @@ sealed class SearchResult(open val query: String, open val providerId: String) {
     data class SearchSuggestion(
         override val query: String,
         override val providerId: String,
-        val extras: Map<String, Any>,
+        val extras: Map<String, String>,
     ) : SearchResult(query, providerId)
 }
