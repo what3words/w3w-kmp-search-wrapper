@@ -14,6 +14,14 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+
+        val wrapperApiKey: String = project.findProperty("PROD_API_KEY") as String? ?: ""
+
+        buildConfigField(
+            "String",
+            "W3W_WRAPPER_API_KEY",
+            "\"$wrapperApiKey\""
+        )
     }
     packaging {
         resources {
@@ -40,6 +48,9 @@ android {
             kotlin.srcDirs("src/androidUnitTest/kotlin")
         }
     }
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
@@ -53,6 +64,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodelCompose)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(projects.shared)
+
+    implementation(libs.w3w.android.wrapper) {
+        exclude(group = "com.what3words", module = "w3w-core-android")
+    }
+
     testImplementation(libs.kotlin.test)
     debugImplementation(libs.compose.uiTooling)
 }
