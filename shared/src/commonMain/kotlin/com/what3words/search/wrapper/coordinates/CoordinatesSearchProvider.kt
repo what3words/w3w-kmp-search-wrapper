@@ -19,6 +19,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 
+/** Unique identifier for the coordinates search provider. */
+const val COORDINATES_PROVIDER_ID: String = "CoordinatesSearchProvider"
+
 /**
  * Provider for searching coordinates in various formats (DD, DDM, DMS).
  * Parses valid coordinate strings and converts them into what3words addresses.
@@ -26,12 +29,11 @@ import kotlinx.coroutines.withContext
  * @param textDataSource Data source used to perform the coordinate-to-what3words conversion.
  * @param config Configuration that controls which coordinate formats are accepted and the target language.
  */
-class CoordinatesSearchProvider(
+internal class CoordinatesSearchProvider(
     private val textDataSource: W3WTextDataSource,
     private val config: CoordinatesSearchConfig
 ) : SearchProvider {
-    /** Unique identifier for this provider. */
-    override val providerId: String = "CoordinatesSearchProvider"
+    override val providerId: String = COORDINATES_PROVIDER_ID
 
     /**
      * Checks if the given query matches any enabled coordinate format.
@@ -58,7 +60,8 @@ class CoordinatesSearchProvider(
             else -> null
         } ?: return@withContext W3WResult.Failure(InvalidCoordinatesException())
 
-        return@withContext when (val result = textDataSource.convertTo3wa(coordinates, config.language)) {
+        return@withContext when (val result =
+            textDataSource.convertTo3wa(coordinates, config.language)) {
             is W3WResult.Success -> W3WResult.Success(
                 listOf(
                     SearchResult.ResolvedAddress(
@@ -68,7 +71,9 @@ class CoordinatesSearchProvider(
                     )
                 )
             )
+
             is W3WResult.Failure -> W3WResult.Failure(result.error)
         }
     }
+
 }

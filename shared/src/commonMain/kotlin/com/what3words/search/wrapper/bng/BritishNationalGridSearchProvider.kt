@@ -11,6 +11,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 
+/** Unique identifier for the British National Grid search provider. */
+const val BRITISH_NATIONAL_GRID_PROVIDER_ID: String = "BngSearchProvider"
+
 /**
  * A [SearchProvider] that resolves British National Grid references (OS grid references and
  * easting/northing pairs) to what3words addresses.
@@ -18,11 +21,11 @@ import kotlinx.coroutines.withContext
  * @param textDataSource The data source used to convert coordinates to a what3words address.
  * @param config Configuration specifying the target language for the address lookup.
  */
-class BritishNationalGridSearchProvider(
+internal class BritishNationalGridSearchProvider(
     private val textDataSource: W3WTextDataSource,
     private val config: BritishNationalGridSearchConfig
 ) : SearchProvider {
-    override val providerId: String = PROVIDER_ID
+    override val providerId: String = BRITISH_NATIONAL_GRID_PROVIDER_ID
 
     /** Returns `true` if [query] is a valid OS grid reference or easting/northing pair. */
     override fun canHandle(query: String): Boolean {
@@ -57,7 +60,4 @@ class BritishNationalGridSearchProvider(
 
     }
 
-    companion object {
-        const val PROVIDER_ID: String = "BngSearchProvider"
-    }
 }
