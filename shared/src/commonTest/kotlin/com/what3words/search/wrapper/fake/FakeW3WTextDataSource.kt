@@ -2,17 +2,23 @@ package com.what3words.search.wrapper.fake
 
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
+import com.what3words.core.types.domain.W3WAddress
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.core.types.geometry.W3WGridSection
 import com.what3words.core.types.geometry.W3WRectangle
 import com.what3words.core.types.language.W3WLanguage
 import com.what3words.core.types.options.W3WAutosuggestOptions
+import com.what3words.search.wrapper.fixtures.fakeAddress
 
-/** A no-op [W3WTextDataSource] stub that throws [NotImplementedError] for all operations. */
-internal val fakeDataSource = object : W3WTextDataSource {
+/** A stub implementation of [W3WTextDataSource] for testing purposes. */
+class FakeW3WTextDataSource : W3WTextDataSource {
+    var convertTo3waResult: W3WResult<W3WAddress> = W3WResult.Success(fakeAddress())
+
     override fun version(version: W3WTextDataSource.Version): String? = null
-    override fun convertTo3wa(coordinates: W3WCoordinates, language: W3WLanguage) =
-        throw NotImplementedError()
+    
+    override fun convertTo3wa(coordinates: W3WCoordinates, language: W3WLanguage): W3WResult<W3WAddress> {
+        return convertTo3waResult
+    }
 
     override fun convertToCoordinates(words: String) = throw NotImplementedError()
     override fun autosuggest(input: String, options: W3WAutosuggestOptions?) =
