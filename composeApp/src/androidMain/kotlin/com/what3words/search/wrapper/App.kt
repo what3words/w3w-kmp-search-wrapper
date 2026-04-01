@@ -1,45 +1,276 @@
 package com.what3words.search.wrapper
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.what3words.core.types.domain.W3WAddress
+import com.what3words.core.types.domain.W3WCountry
+import com.what3words.core.types.language.W3WProprietaryLanguage
+import com.what3words.search.wrapper.core.SearchResult
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
-fun App() {
+fun App(viewModel: SearchViewModel) {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Address Search", fontWeight = FontWeight.SemiBold) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                    ),
+                )
             }
-            AnimatedVisibility(showContent) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(R.drawable.compose_multiplatform), null)
-                    Text("Compose: Hello")
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                // ── Search field ──────────────────────────────────────────────
+                OutlinedTextField(
+                    value = uiState.query,
+                    onValueChange = { viewModel.handleAction(SearchAction.QueryChanged(it)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    placeholder = { Text("Search for a place…") },
+                    leadingIcon = {
+                        Text(
+                            text = "🔍",
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    },
+                    trailingIcon = {
+                        if (uiState.query.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.handleAction(SearchAction.ClearQuery) }) {
+                                Text(text = "✕", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.large,
+                )
+
+                // ── Search progress ───────────────────────────────────────────
+                if (uiState.isSearching) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+
+                // ── Error banner ──────────────────────────────────────────────
+                uiState.error?.let { errorMsg ->
+                    Text(
+                        text = errorMsg,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                }
+
+                // ── Resolved address card ─────────────────────────────────────
+                uiState.resolvedAddress?.let { resolved ->
+                    ResolvedAddressCard(
+                        resolvedAddress = resolved,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
+
+                // ── Suggestions list or resolve spinner ───────────────────────
+                if (uiState.isResolving) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    LazyColumn {
+                        items(uiState.suggestions, key = { it.hashCode() }) { suggestion ->
+                            SuggestionItem(
+                                suggestion = suggestion,
+                                onClick = { viewModel.handleAction(SearchAction.SuggestionSelected(it)) },
+                            )
+
+                            HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
+                        }
+                    }
                 }
             }
+        }
+    }
+}
+
+// ── Sub-composables ───────────────────────────────────────────────────────────
+
+@Composable
+private fun SuggestionItem(
+    suggestion: SearchResult,
+    onClick: (SearchResult) -> Unit,
+) {
+    val (primaryText, secondaryText) = when (suggestion) {
+        is SearchResult.SearchSuggestion -> {
+            val primaryText = suggestion.extras["primaryText"].orEmpty()
+            val secondaryText = suggestion.extras["secondaryText"].orEmpty()
+            Pair(primaryText, secondaryText)
+        }
+        is SearchResult.ResolvedAddress -> {
+            val primaryText = suggestion.address.words
+            val secondaryText = suggestion.address.nearestPlace
+            Pair(primaryText, secondaryText)
+        }
+    }
+
+    ListItem(
+        headlineContent = { Text(primaryText) },
+        supportingContent = if (secondaryText.isNotEmpty()) {
+            { Text(secondaryText, style = MaterialTheme.typography.bodySmall) }
+        } else null,
+        leadingContent = {
+            Text(
+                text = "📍",
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        },
+        modifier = Modifier.clickable { onClick(suggestion) },
+    )
+}
+
+@Composable
+private fun ResolvedAddressCard(
+    resolvedAddress: SearchResult.ResolvedAddress,
+    modifier: Modifier = Modifier,
+) {
+    val address = resolvedAddress.address
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // what3words address
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "///",
+                    color = Color(0xFFE11F26),
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = address.words,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+
+            // Nearest place
+            val nearestPlace = address.nearestPlace
+            if (nearestPlace.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = nearestPlace,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            // Coordinates
+            val center = address.center
+            if (center != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CoordinateChip(label = "Lat", value = "%.6f".format(center.lat))
+                    CoordinateChip(label = "Lng", value = "%.6f".format(center.lng))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CoordinateChip(label: String, value: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = "$label ",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.width(2.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Medium,
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewSuggestionItem() {
+    MaterialTheme {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            SuggestionItem(
+                suggestion = SearchResult.SearchSuggestion(
+                    "Sonatus",
+                    "google_places",
+                    mapOf("primaryText" to "Sonatus Building", "secondaryText" to "Saigon, Vietnam")
+                ),
+                onClick = {},
+            )
+
+            SuggestionItem(
+                suggestion = SearchResult.ResolvedAddress(
+                    "filled.count.soap",
+                    "w3w",
+                    W3WAddress(
+                        words = "filled.count.soap",
+                        center = null,
+                        square = null,
+                        language = W3WProprietaryLanguage("en", null, null, null),
+                        country = W3WCountry("GB"),
+                        nearestPlace = "London"
+                    )
+                ),
+                onClick = {},
+            )
         }
     }
 }
