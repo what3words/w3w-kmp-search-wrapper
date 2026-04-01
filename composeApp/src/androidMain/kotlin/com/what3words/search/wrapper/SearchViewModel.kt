@@ -1,14 +1,12 @@
 package com.what3words.search.wrapper
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.W3WSearchClient
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,11 +36,8 @@ data class UiState(
 
 @OptIn(FlowPreview::class)
 class SearchViewModel(
-    textDataSource: W3WTextDataSource,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val searchClient: W3WSearchClient,
 ) : ViewModel() {
-
-    private val searchClient = W3WSearchClient(textDataSource) {}
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -90,16 +85,17 @@ class SearchViewModel(
     private fun onSuggestionSelected(suggestion: SearchResult) {
         when (suggestion) {
             is SearchResult.SearchSuggestion -> resolveAddress(suggestion)
-            is SearchResult.ResolvedAddress -> _uiState.update { it.copy(resolvedAddress = suggestion) }
+            is SearchResult.ResolvedAddress -> setSelectedAddress(suggestion)
         }
     }
 
     private fun resolveAddress(suggestion: SearchResult.SearchSuggestion) {
-        viewModelScope.launch(ioDispatcher) {
+        viewModelScope.launch {
             _uiState.update { it.copy(isResolving = true, error = null, resolvedAddress = null) }
             when (val result = searchClient.resolve(suggestion)) {
                 is W3WResult.Success ->
-                    _uiState.update { it.copy(resolvedAddress = result.value) }
+                    setSelectedAddress(result.value)
+
                 is W3WResult.Failure ->
                     _uiState.update {
                         it.copy(error = result.error.message ?: "Failed to resolve address")
@@ -109,11 +105,24 @@ class SearchViewModel(
         }
     }
 
+    private fun setSelectedAddress(address: SearchResult.ResolvedAddress) {
+        Log.d("SearchViewModel", "Selected address: $address")
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    resolvedAddress = address,
+                    suggestions = emptyList(),
+                    query = ""
+                )
+            }
+        }
+    }
+
     private fun performSearch(query: String) {
         _uiState.update { it.copy(isSearching = true, error = null) }
 
         searchTask?.cancel()
-        searchTask = viewModelScope.launch(ioDispatcher) {
+        searchTask = viewModelScope.launch {
             when (val result = searchClient.search(query)) {
                 is W3WResult.Success ->
                     _uiState.update {
@@ -122,6 +131,7 @@ class SearchViewModel(
                             isSearching = false,
                         )
                     }
+
                 is W3WResult.Failure ->
                     _uiState.update {
                         it.copy(
@@ -135,10 +145,10 @@ class SearchViewModel(
     }
 
     class Factory(
-        private val textDataSource: W3WTextDataSource,
+        private val searchClient: W3WSearchClient,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            SearchViewModel(textDataSource) as T
+            SearchViewModel(searchClient) as T
     }
 }
