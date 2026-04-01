@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.what3words.core.types.common.W3WResult
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.W3WSearchClient
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,7 +90,7 @@ class SearchViewModel(
     }
 
     private fun resolveAddress(suggestion: SearchResult.SearchSuggestion) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _uiState.update { it.copy(isResolving = true, error = null, resolvedAddress = null) }
             when (val result = searchClient.resolve(suggestion)) {
                 is W3WResult.Success ->
@@ -123,7 +122,7 @@ class SearchViewModel(
         _uiState.update { it.copy(isSearching = true, error = null) }
 
         searchTask?.cancel()
-        searchTask = viewModelScope.launch(Dispatchers.IO) {
+        searchTask = viewModelScope.launch {
             when (val result = searchClient.search(query)) {
                 is W3WResult.Success ->
                     _uiState.update {

@@ -17,7 +17,7 @@ class MainActivity : ComponentActivity() {
 
         val textDataSource = W3WApiTextDataSource.create(this, BuildConfig.W3W_WRAPPER_API_KEY)
         val searchClient = W3WSearchClient(textDataSource) {
-            install(CoordinatesSearch, 10)
+            install(CoordinatesSearch, priority = 10)
         }
 
         setContent {
