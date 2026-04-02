@@ -4,9 +4,11 @@ import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
 import com.what3words.search.wrapper.error.ProviderNotFoundException
 import com.what3words.search.wrapper.error.ProviderNotResolvableException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import kotlin.experimental.ExperimentalObjCRefinement
 import kotlin.native.HiddenFromObjC
 
@@ -52,26 +54,24 @@ class W3WSearchClient {
      * @return A [W3WResult] containing a merged list of [SearchResult]s.
      */
     @Throws(Exception::class)
-    suspend fun search(query: String): W3WResult<List<SearchResult>> {
+    suspend fun search(query: String): W3WResult<List<SearchResult>> = withContext(Dispatchers.IO) {
         for (tier in config.providerTiers()) {
             val capable = tier.filter { it.canHandle(query) }
             if (capable.isEmpty()) continue //If no provider can handle, try next tier
 
-            val rawResults = coroutineScope {
-                capable.map { async { it.executeSearch(query) } }.awaitAll()
-            }
+            val rawResults = capable.map { async { it.executeSearch(query) } }.awaitAll()
 
             val successes = rawResults.filterIsInstance<W3WResult.Success<List<SearchResult>>>()
             if (successes.isEmpty()) {
                 // All capable providers failed — surface the first failure rather than silently
                 // returning an empty success.
-                return rawResults.first()
+                return@withContext rawResults.first()
             }
 
-            return W3WResult.Success(successes.flatMap { it.value })
+            return@withContext W3WResult.Success(successes.flatMap { it.value })
         }
 
-        return W3WResult.Failure(ProviderNotFoundException())
+        W3WResult.Failure(ProviderNotFoundException())
     }
 
     /**
@@ -83,14 +83,15 @@ class W3WSearchClient {
      * [ProviderNotResolvableException] if the originating provider cannot be found or does not support resolution.
      */
     @Throws(Exception::class)
-    suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> {
-        val provider = config.providers.find { it.providerId == data.providerId }
-        if (provider is ResolvableSearchProvider) {
-            return provider.resolve(data)
-        }
+    suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> =
+        withContext(Dispatchers.IO) {
+            val provider = config.providers.find { it.providerId == data.providerId }
+            if (provider is ResolvableSearchProvider) {
+                return@withContext provider.resolve(data)
+            }
 
-        return W3WResult.Failure(ProviderNotResolvableException())
-    }
+            return@withContext W3WResult.Failure(ProviderNotResolvableException())
+        }
 
     /**
      * Configuration builder for [W3WSearchClient].

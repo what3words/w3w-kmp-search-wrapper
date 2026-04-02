@@ -9,6 +9,11 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        // expect/actual classes are in Beta; suppress the warning project-wide
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     // Android target configured via com.android.kotlin.multiplatform.library plugin
     android {
         namespace = "com.what3words.search.wrapper.shared"
@@ -50,6 +55,9 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.ktor.client.mock)
+            implementation(libs.ktor.serialization)
+            implementation(libs.ktor.serialization.json)
         }
     }
 }

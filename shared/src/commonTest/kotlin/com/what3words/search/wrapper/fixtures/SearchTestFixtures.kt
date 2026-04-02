@@ -33,8 +33,16 @@ internal fun fakeAddress() = W3WAddress(
 )
 
 /** Creates a [SearchResult.SearchSuggestion] for the given [providerId] and optional [query]. */
-internal fun suggestion(providerId: String, query: String = "test") =
-    SearchResult.SearchSuggestion(query = query, providerId = providerId, extras = emptyMap())
+internal fun suggestion(
+    providerId: String,
+    query: String = "test",
+    title: String = "title",
+    subtitle: String = "subtitle"
+) = SearchResult.SearchSuggestion(
+    query = query, providerId = providerId, extras = emptyMap(),
+    title = title,
+    subtitle = subtitle
+)
 
 /** Builds a [W3WSearchClient] using [FakeW3WTextDataSource] and the provided DSL [block]. */
 internal fun buildClient(block: W3WSearchClient.Config.() -> Unit) =

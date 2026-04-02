@@ -86,6 +86,7 @@ fun App(viewModel: SearchViewModel) {
                     singleLine = true,
                     shape = MaterialTheme.shapes.large,
                 )
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // ── Search progress ───────────────────────────────────────────
                 if (uiState.isSearching) {
@@ -122,13 +123,21 @@ fun App(viewModel: SearchViewModel) {
                     }
                 } else {
                     LazyColumn {
-                        items(uiState.suggestions, key = { it.hashCode() }) { suggestion ->
-                            SuggestionItem(
-                                suggestion = suggestion,
-                                onClick = { viewModel.handleAction(SearchAction.SuggestionSelected(it)) },
-                            )
-
-                            HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
+                        uiState.suggestions.groupBy { it.providerId }.map { (providerId, suggestions) ->
+                            stickyHeader {
+                                Text(
+                                    providerId,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                            }
+                            items(suggestions, key = { it.hashCode() }) { suggestion ->
+                                SuggestionItem(
+                                    suggestion = suggestion,
+                                    onClick = { viewModel.handleAction(SearchAction.SuggestionSelected(it)) },
+                                )
+                                HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
+                            }
                         }
                     }
                 }
@@ -144,23 +153,15 @@ private fun SuggestionItem(
     suggestion: SearchResult,
     onClick: (SearchResult) -> Unit,
 ) {
-    val (primaryText, secondaryText) = when (suggestion) {
-        is SearchResult.SearchSuggestion -> {
-            val primaryText = suggestion.extras["primaryText"].orEmpty()
-            val secondaryText = suggestion.extras["secondaryText"].orEmpty()
-            Pair(primaryText, secondaryText)
-        }
-        is SearchResult.ResolvedAddress -> {
-            val primaryText = suggestion.address.words
-            val secondaryText = suggestion.address.nearestPlace
-            Pair(primaryText, secondaryText)
-        }
+    val (title, subtitle) = when (suggestion) {
+        is SearchResult.SearchSuggestion -> Pair(suggestion.title, suggestion.subtitle)
+        is SearchResult.ResolvedAddress -> Pair(suggestion.address.words, suggestion.address.nearestPlace)
     }
 
     ListItem(
-        headlineContent = { Text(primaryText) },
-        supportingContent = if (secondaryText.isNotEmpty()) {
-            { Text(secondaryText, style = MaterialTheme.typography.bodySmall) }
+        headlineContent = { Text(title) },
+        supportingContent = if (!subtitle.isNullOrEmpty()) {
+            { Text(subtitle, style = MaterialTheme.typography.bodySmall) }
         } else null,
         leadingContent = {
             Text(
@@ -249,9 +250,11 @@ private fun PreviewSuggestionItem() {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             SuggestionItem(
                 suggestion = SearchResult.SearchSuggestion(
-                    "Sonatus",
-                    "google_places",
-                    mapOf("primaryText" to "Sonatus Building", "secondaryText" to "Saigon, Vietnam")
+                    query = "Sonatus",
+                    providerId = "google_places",
+                    title = "Sonatus Building",
+                    subtitle = "Saigon, Vietnam",
+                    extras = emptyMap(),
                 ),
                 onClick = {},
             )
