@@ -3,7 +3,7 @@ package com.what3words.search.wrapper.googleplaces
 import com.what3words.core.types.language.W3WRFC5646Language
 
 /**
- * Configuration for [GooglePlacesProvider].
+ * Configuration for [GooglePlacesSearchProvider].
  *
  * @property apiKey Google Places API key for authenticating requests.
  * @property language RFC 5646 language for autocomplete and what3words conversion. Defaults to [W3WRFC5646Language.EN_GB].

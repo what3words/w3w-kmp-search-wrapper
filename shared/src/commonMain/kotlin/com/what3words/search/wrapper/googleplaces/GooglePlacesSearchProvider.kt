@@ -26,7 +26,7 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /** Unique identifier for the Google Places search provider. */
-const val GOOGLE_PLACES_PROVIDER_ID = "GooglePlacesProvider"
+const val GOOGLE_PLACES_PROVIDER_ID = "GooglePlacesSearchProvider"
 
 private const val BASE_URL = "https://places.googleapis.com/v1/places"
 private const val AUTOCOMPLETE_PATH = "$BASE_URL:autocomplete"
@@ -52,7 +52,7 @@ private const val QUERY_PARAM_SESSION_TOKEN = "sessionToken"
  * @property config Provider configuration.
  * @property textDataSource Used for coordinate-to-what3words conversion.
  */
-internal class GooglePlacesProvider internal constructor(
+internal class GooglePlacesSearchProvider internal constructor(
     private val config: GooglePlacesConfig,
     private val textDataSource: W3WTextDataSource,
     private val httpClient: HttpClient,

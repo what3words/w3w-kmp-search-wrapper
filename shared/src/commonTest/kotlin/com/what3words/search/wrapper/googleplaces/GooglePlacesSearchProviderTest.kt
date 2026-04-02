@@ -36,7 +36,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class GooglePlacesProviderTest {
+class GooglePlacesSearchProviderTest {
 
     /** Base config with session tokens disabled for simpler tests. */
     private val defaultConfig = GooglePlacesConfig(
@@ -113,7 +113,7 @@ class GooglePlacesProviderTest {
         config: GooglePlacesConfig = defaultConfig,
         dataSource: W3WTextDataSource = successDataSource,
         httpClient: HttpClient = mockClient(),
-    ) = GooglePlacesProvider(config, dataSource, httpClient)
+    ) = GooglePlacesSearchProvider(config, dataSource, httpClient)
 
     private fun autocompleteJson(
         placeId: String = "ChIJ_test",

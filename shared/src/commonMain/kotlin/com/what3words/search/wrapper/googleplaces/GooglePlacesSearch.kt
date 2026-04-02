@@ -6,7 +6,7 @@ import com.what3words.search.wrapper.core.SearchPlugin
 
 
 /**
- * [SearchPlugin] that builds and installs a [GooglePlacesProvider] into a `W3WSearchClient`.
+ * [SearchPlugin] that builds and installs a [GooglePlacesSearchProvider] into a `W3WSearchClient`.
  *
  * ```kotlin
  * W3WSearchClient(textDataSource) {
@@ -19,5 +19,5 @@ object GooglePlacesSearch : SearchPlugin<GooglePlacesConfig, ResolvableSearchPro
     override fun build(
         config: GooglePlacesConfig,
         textDataSource: W3WTextDataSource,
-    ): ResolvableSearchProvider = GooglePlacesProvider(config, textDataSource)
+    ): ResolvableSearchProvider = GooglePlacesSearchProvider(config, textDataSource)
 }

@@ -42,7 +42,7 @@ class GooglePlacesSearchClientIntegrationTest {
         googlePriority: Int = 10,
         fallbackProvider: Pair<String, Int>? = null,
     ): W3WSearchClient {
-        val placesProvider = GooglePlacesProvider(config, defaultDataSource, httpClient)
+        val placesProvider = GooglePlacesSearchProvider(config, defaultDataSource, httpClient)
         return W3WSearchClient(defaultDataSource) {
             install(pluginFor(placesProvider), priority = googlePriority)
             fallbackProvider?.let { (id, priority) ->
@@ -200,7 +200,7 @@ class GooglePlacesSearchClientIntegrationTest {
     }
 
     @Test
-    fun resolve_delegatesToGooglePlacesProvider_andReturnsAddress() = runTest {
+    fun resolve_delegatesToGooglePlacesSearchProvider_andReturnsAddress() = runTest {
         val client = buildClient()
         val suggestion = SearchResult.SearchSuggestion(
             query = "200 Main Street",

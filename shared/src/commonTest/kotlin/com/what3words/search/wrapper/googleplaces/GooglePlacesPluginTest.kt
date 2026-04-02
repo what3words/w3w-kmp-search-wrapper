@@ -12,12 +12,12 @@ class GooglePlacesPluginTest {
     private val dataSource = FakeW3WTextDataSource()
 
     @Test
-    fun build_createsGooglePlacesProvider() {
+    fun build_createsGooglePlacesSearchProvider() {
         val config = GooglePlacesConfig(apiKey = "key")
         val provider = GooglePlacesSearch.build(config, dataSource)
 
         assertNotNull(provider)
-        assertIs<GooglePlacesProvider>(provider)
+        assertIs<GooglePlacesSearchProvider>(provider)
     }
 
     @Test
