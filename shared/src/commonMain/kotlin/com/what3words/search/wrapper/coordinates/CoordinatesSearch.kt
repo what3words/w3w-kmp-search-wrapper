@@ -1,6 +1,7 @@
 package com.what3words.search.wrapper.coordinates
 
 import com.what3words.core.datasource.text.W3WTextDataSource
+import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SimpleSearchPlugin
 
 /**
@@ -11,13 +12,13 @@ import com.what3words.search.wrapper.core.SimpleSearchPlugin
  * Degrees Minutes Seconds (DMS) formats.
  */
 object CoordinatesSearch :
-    SimpleSearchPlugin<CoordinatesSearchConfig, CoordinatesSearchProvider>() {
+    SimpleSearchPlugin<CoordinatesSearchConfig, SearchProvider>() {
 
     /** Returns the default [CoordinatesSearchConfig] with all coordinate formats enabled. */
     override fun defaultConfig(): CoordinatesSearchConfig = CoordinatesSearchConfig()
 
     /**
-     * Builds a [CoordinatesSearchProvider] using the given [config] and [textDataSource].
+     * Builds a [SearchProvider] using the given [config] and [textDataSource].
      *
      * @param config Configuration controlling which coordinate formats are enabled and the target language.
      * @param textDataSource Data source used to convert coordinates to what3words addresses.
@@ -25,7 +26,7 @@ object CoordinatesSearch :
     override fun build(
         config: CoordinatesSearchConfig,
         textDataSource: W3WTextDataSource
-    ): CoordinatesSearchProvider {
+    ): SearchProvider {
         return CoordinatesSearchProvider(textDataSource, config)
     }
 }
