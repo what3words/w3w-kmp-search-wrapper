@@ -19,8 +19,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -109,8 +112,8 @@ internal class GooglePlacesSearchProvider internal constructor(
      *
      * `extras["placeId"]` holds the place identifier required by [resolve].
      */
-    override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> {
-        return try {
+    override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> = withContext(Dispatchers.IO) {
+        try {
             val token = sessionToken()
             val response = httpClient.post(AUTOCOMPLETE_PATH) {
                 applyCommonHeaders(AUTOCOMPLETE_FIELD_MASK)
@@ -119,7 +122,7 @@ internal class GooglePlacesSearchProvider internal constructor(
             }
 
             if (!response.status.isSuccess()) {
-                return W3WResult.Failure(response.toGooglePlacesApiError())
+                return@withContext W3WResult.Failure(response.toGooglePlacesApiError())
             }
 
             val results = response.body<AutocompleteResponse>().suggestions
@@ -151,43 +154,44 @@ internal class GooglePlacesSearchProvider internal constructor(
      * @return [W3WResult.Success] with a [SearchResult.ResolvedAddress], or [W3WResult.Failure]
      *   if the place ID is missing, the network call fails, or coordinate conversion fails.
      */
-    override suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> {
-        val placeId = data.extras[EXTRAS_KEY_PLACE_ID]
-            ?: return W3WResult.Failure(W3WError("Missing placeId in suggestion extras"))
+    override suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> =
+        withContext(Dispatchers.IO) {
+            val placeId = data.extras[EXTRAS_KEY_PLACE_ID]
+                ?: return@withContext W3WResult.Failure(W3WError("Missing placeId in suggestion extras"))
 
-        val token = sessionToken()
+            val token = sessionToken()
 
-        return try {
-            val response = httpClient.get("$BASE_URL/$placeId") {
-                applyCommonHeaders(PLACE_DETAILS_FIELD_MASK)
-                token?.let { parameter(QUERY_PARAM_SESSION_TOKEN, it) }
-            }
+            try {
+                val response = httpClient.get("$BASE_URL/$placeId") {
+                    applyCommonHeaders(PLACE_DETAILS_FIELD_MASK)
+                    token?.let { parameter(QUERY_PARAM_SESSION_TOKEN, it) }
+                }
 
-            if (!response.status.isSuccess()) {
-                return W3WResult.Failure(response.toGooglePlacesApiError())
-            }
+                if (!response.status.isSuccess()) {
+                    return@withContext W3WResult.Failure(response.toGooglePlacesApiError())
+                }
 
-            val details = response.body<PlaceDetailsResponse>()
-            val latLng = details.location
-                ?: return W3WResult.Failure(W3WError("Place details missing location for placeId=$placeId"))
+                val details = response.body<PlaceDetailsResponse>()
+                val latLng = details.location
+                    ?: return@withContext W3WResult.Failure(W3WError("Place details missing location for placeId=$placeId"))
 
-            val coordinates = W3WCoordinates(lat = latLng.latitude, lng = latLng.longitude)
+                val coordinates = W3WCoordinates(lat = latLng.latitude, lng = latLng.longitude)
 
-            when (val w3wResult = textDataSource.convertTo3wa(coordinates, config.language)) {
-                is W3WResult.Success -> W3WResult.Success(
-                    SearchResult.ResolvedAddress(
-                        query = data.query,
-                        providerId = providerId,
-                        address = w3wResult.value
+                when (val w3wResult = textDataSource.convertTo3wa(coordinates, config.language)) {
+                    is W3WResult.Success -> W3WResult.Success(
+                        SearchResult.ResolvedAddress(
+                            query = data.query,
+                            providerId = providerId,
+                            address = w3wResult.value
+                        )
                     )
-                )
-                is W3WResult.Failure -> W3WResult.Failure(w3wResult.error, w3wResult.message)
+                    is W3WResult.Failure -> W3WResult.Failure(w3wResult.error, w3wResult.message)
+                }
+            } catch (e: Exception) {
+                W3WResult.Failure(W3WError(e))
+            } finally {
+                // Rotate the token after every place details fetch to start a fresh billing session.
+                rotateSessionToken()
             }
-        } catch (e: Exception) {
-            W3WResult.Failure(W3WError(e))
-        } finally {
-            // Rotate the token after every place details fetch to start a fresh billing session.
-            rotateSessionToken()
         }
-    }
 }
