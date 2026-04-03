@@ -104,11 +104,27 @@ internal class GooglePlacesSearchProvider internal constructor(
     /** Handles queries that meet or exceed [GooglePlacesConfig.minQueryLength]. */
     override fun canHandle(query: String): Boolean = query.length >= config.minQueryLength
 
-    /** Applies the API key and any extra configured headers to the request. */
-    private fun HttpRequestBuilder.applyCommonHeaders(fieldMask: String) {
-        header(HEADER_API_KEY, config.apiKey)
-        header(HEADER_FIELD_MASK, fieldMask)
-        config.headers.forEach { (key, value) -> header(key, value) }
+    /** Headers sent with every autocomplete request. */
+    private val autoCompleteHeaders: Map<String, String> by lazy {
+        buildMap {
+            put(HEADER_API_KEY, config.apiKey)
+            put(HEADER_FIELD_MASK, AUTOCOMPLETE_FIELD_MASK)
+            config.headers.forEach { (key, value) -> if (value != null) put(key, value) }
+        }
+    }
+
+    /** Headers sent with every place-details request. */
+    private val placeDetailHeaders: Map<String, String> by lazy {
+        buildMap {
+            put(HEADER_API_KEY, config.apiKey)
+            put(HEADER_FIELD_MASK, PLACE_DETAILS_FIELD_MASK)
+            config.headers.forEach { (key, value) -> if (value != null) put(key, value) }
+        }
+    }
+
+    /** Applies a pre-built header map to the request. */
+    private fun HttpRequestBuilder.applyHeaders(headers: Map<String, String>) {
+        headers.forEach { (key, value) -> header(key, value) }
     }
 
     /**
@@ -120,7 +136,7 @@ internal class GooglePlacesSearchProvider internal constructor(
         try {
             val token = sessionToken()
             val response = httpClient.post(AUTOCOMPLETE_PATH) {
-                applyCommonHeaders(AUTOCOMPLETE_FIELD_MASK)
+                applyHeaders(autoCompleteHeaders)
                 contentType(ContentType.Application.Json)
                 setBody(AutocompleteRequest(input = query, sessionToken = token))
             }
@@ -167,8 +183,8 @@ internal class GooglePlacesSearchProvider internal constructor(
 
             try {
                 val response = httpClient.get("$BASE_URL/$placeId") {
-                    applyCommonHeaders(PLACE_DETAILS_FIELD_MASK)
-                    token?.let { parameter(QUERY_PARAM_SESSION_TOKEN, it) }
+                    applyHeaders(placeDetailHeaders)
+                    parameter(QUERY_PARAM_SESSION_TOKEN, token)
                 }
 
                 if (!response.status.isSuccess()) {
