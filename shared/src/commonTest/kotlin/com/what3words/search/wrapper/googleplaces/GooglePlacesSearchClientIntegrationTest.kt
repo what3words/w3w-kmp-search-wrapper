@@ -11,6 +11,7 @@ import com.what3words.search.wrapper.fake.fakeProvider
 import com.what3words.search.wrapper.fixtures.fakeAddress
 import com.what3words.search.wrapper.fixtures.pluginFor
 import com.what3words.search.wrapper.fixtures.suggestion
+import com.what3words.search.wrapper.googleplaces.model.GooglePlacesApiError
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond

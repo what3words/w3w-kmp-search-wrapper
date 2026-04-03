@@ -13,6 +13,7 @@ import com.what3words.core.types.language.W3WProprietaryLanguage
 import com.what3words.core.types.options.W3WAutosuggestOptions
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.fixtures.fakeAddress
+import com.what3words.search.wrapper.googleplaces.model.GooglePlacesApiError
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond

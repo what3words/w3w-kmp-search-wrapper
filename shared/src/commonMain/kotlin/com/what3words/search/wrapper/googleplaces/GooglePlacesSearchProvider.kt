@@ -6,6 +6,10 @@ import com.what3words.core.types.common.W3WResult
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
+import com.what3words.search.wrapper.googleplaces.model.AutocompleteRequest
+import com.what3words.search.wrapper.googleplaces.model.AutocompleteResponse
+import com.what3words.search.wrapper.googleplaces.model.PlaceDetailsResponse
+import com.what3words.search.wrapper.googleplaces.model.toGooglePlacesApiError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
