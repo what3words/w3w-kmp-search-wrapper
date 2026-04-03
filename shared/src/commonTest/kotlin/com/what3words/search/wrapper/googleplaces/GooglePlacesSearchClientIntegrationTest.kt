@@ -206,7 +206,6 @@ class GooglePlacesSearchClientIntegrationTest {
         val suggestion = SearchResult.SearchSuggestion(
             query = "200 Main Street",
             providerId = GOOGLE_PLACES_PROVIDER_ID,
-            title = "200 Main Street",
             extras = mapOf("placeId" to "ChIJ_test"),
         )
 
@@ -224,7 +223,6 @@ class GooglePlacesSearchClientIntegrationTest {
         val suggestion = SearchResult.SearchSuggestion(
             query = "test",
             providerId = "unknown_provider",
-            title = "",
             extras = mapOf("placeId" to "ChIJ_test"),
         )
 
@@ -241,7 +239,6 @@ class GooglePlacesSearchClientIntegrationTest {
         val suggestion = SearchResult.SearchSuggestion(
             query = "200 Main Street",
             providerId = GOOGLE_PLACES_PROVIDER_ID,
-            title = "200 Main Street",
             extras = mapOf("placeId" to "ChIJ_test"),
         )
 

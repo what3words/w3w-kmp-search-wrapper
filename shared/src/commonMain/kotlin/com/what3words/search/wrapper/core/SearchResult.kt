@@ -27,15 +27,12 @@ sealed class SearchResult(open val query: String, open val providerId: String) {
      *
      * Use [ResolvableSearchProvider.resolve] to convert this into a [ResolvedAddress].
      *
-     * @property title Primary display text for the suggestion (e.g. street name or place name).
-     * @property subtitle Optional secondary display text (e.g. city or region). `null` when absent.
      * @property extras Provider-specific metadata associated with this suggestion.
+     *   Providers may include display keys such as `"title"` and `"subtitle"` in this map.
      */
     data class SearchSuggestion(
         override val query: String,
         override val providerId: String,
-        val title: String,
-        val subtitle: String? = null,
         val extras: Map<String, String>,
     ) : SearchResult(query, providerId)
 }

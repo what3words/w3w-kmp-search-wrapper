@@ -175,7 +175,6 @@ class GooglePlacesSearchProviderTest {
         SearchResult.SearchSuggestion(
             query = "test",
             providerId = GOOGLE_PLACES_PROVIDER_ID,
-            title = "",
             extras = mapOf("placeId" to placeId),
         )
 
@@ -222,8 +221,8 @@ class GooglePlacesSearchProviderTest {
         assertEquals(1, result.value.size)
         val suggestion = assertIs<SearchResult.SearchSuggestion>(result.value.first())
         assertEquals(GOOGLE_PLACES_PROVIDER_ID, suggestion.providerId)
-        assertEquals("200 Main Street", suggestion.title)
-        assertEquals("City, Country", suggestion.subtitle)
+        assertEquals("200 Main Street", suggestion.extras["title"])
+        assertEquals("City, Country", suggestion.extras["subtitle"])
         assertEquals("ChIJ_test", suggestion.extras["placeId"])
     }
 
@@ -246,8 +245,8 @@ class GooglePlacesSearchProviderTest {
 
         assertIs<W3WResult.Success<List<SearchResult>>>(result)
         val suggestion = assertIs<SearchResult.SearchSuggestion>(result.value.first())
-        assertEquals("Fallback full text", suggestion.title)
-        assertNull(suggestion.subtitle)
+        assertEquals("Fallback full text", suggestion.extras["title"])
+        assertNull(suggestion.extras["subtitle"])
     }
 
     @Test
@@ -353,7 +352,6 @@ class GooglePlacesSearchProviderTest {
         val suggestion = SearchResult.SearchSuggestion(
             query = "test",
             providerId = GOOGLE_PLACES_PROVIDER_ID,
-            title = "",
             extras = emptyMap(),
         )
 

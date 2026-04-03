@@ -154,7 +154,10 @@ private fun SuggestionItem(
     onClick: (SearchResult) -> Unit,
 ) {
     val (title, subtitle) = when (suggestion) {
-        is SearchResult.SearchSuggestion -> Pair(suggestion.title, suggestion.subtitle)
+        is SearchResult.SearchSuggestion -> Pair(
+            suggestion.extras["title"].orEmpty(),
+            suggestion.extras["subtitle"].orEmpty()
+        )
         is SearchResult.ResolvedAddress -> Pair(suggestion.address.words, suggestion.address.nearestPlace)
     }
 
@@ -252,9 +255,7 @@ private fun PreviewSuggestionItem() {
                 suggestion = SearchResult.SearchSuggestion(
                     query = "Sonatus",
                     providerId = "google_places",
-                    title = "Sonatus Building",
-                    subtitle = "Saigon, Vietnam",
-                    extras = emptyMap(),
+                    extras = mapOf("title" to "Sonatus Building", "subtitle" to "Saigon, Vietnam"),
                 ),
                 onClick = {},
             )
