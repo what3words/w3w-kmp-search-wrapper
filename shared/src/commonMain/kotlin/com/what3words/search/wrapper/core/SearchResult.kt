@@ -34,5 +34,12 @@ sealed class SearchResult(open val query: String, open val providerId: String) {
         override val query: String,
         override val providerId: String,
         val extras: Map<String, String>,
-    ) : SearchResult(query, providerId)
+    ) : SearchResult(query, providerId) {
+        companion object {
+            /** Extras key for the primary display text of a suggestion (e.g. place or street name). */
+            const val EXTRAS_KEY_TITLE = "title"
+            /** Extras key for the secondary display text of a suggestion (e.g. city or region). */
+            const val EXTRAS_KEY_SUBTITLE = "subtitle"
+        }
+    }
 }

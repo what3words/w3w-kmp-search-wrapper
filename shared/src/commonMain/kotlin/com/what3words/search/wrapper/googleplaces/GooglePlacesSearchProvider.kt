@@ -45,8 +45,6 @@ private const val AUTOCOMPLETE_FIELD_MASK =
             "suggestions.placePrediction.structuredFormat.mainText.text," +
             "suggestions.placePrediction.structuredFormat.secondaryText.text"
 private const val EXTRAS_KEY_PLACE_ID = "placeId"
-private const val EXTRAS_KEY_TITLE = "title"
-private const val EXTRAS_KEY_SUBTITLE = "subtitle"
 private const val QUERY_PARAM_SESSION_TOKEN = "sessionToken"
 
 /**
@@ -157,13 +155,13 @@ internal class GooglePlacesSearchProvider internal constructor(
                         extras = buildMap {
                             put(EXTRAS_KEY_PLACE_ID, prediction.placeId)
                             put(
-                                EXTRAS_KEY_TITLE,
+                                SearchResult.SearchSuggestion.EXTRAS_KEY_TITLE,
                                 prediction.structuredFormat?.mainText?.text
                                     ?: prediction.text?.text.orEmpty()
                             )
                             prediction.structuredFormat?.secondaryText?.text
                                 ?.takeIf { it.isNotEmpty() }
-                                ?.let { put(EXTRAS_KEY_SUBTITLE, it) }
+                                ?.let { put(SearchResult.SearchSuggestion.EXTRAS_KEY_SUBTITLE, it) }
                         }
                     )
                 }

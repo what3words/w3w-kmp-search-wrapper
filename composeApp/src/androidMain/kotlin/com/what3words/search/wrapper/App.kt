@@ -40,6 +40,8 @@ import com.what3words.core.types.domain.W3WAddress
 import com.what3words.core.types.domain.W3WCountry
 import com.what3words.core.types.language.W3WProprietaryLanguage
 import com.what3words.search.wrapper.core.SearchResult
+import com.what3words.search.wrapper.core.SearchResult.SearchSuggestion.Companion.EXTRAS_KEY_SUBTITLE
+import com.what3words.search.wrapper.core.SearchResult.SearchSuggestion.Companion.EXTRAS_KEY_TITLE
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -155,8 +157,8 @@ private fun SuggestionItem(
 ) {
     val (title, subtitle) = when (suggestion) {
         is SearchResult.SearchSuggestion -> Pair(
-            suggestion.extras["title"].orEmpty(),
-            suggestion.extras["subtitle"].orEmpty()
+            suggestion.extras[EXTRAS_KEY_TITLE].orEmpty(),
+            suggestion.extras[EXTRAS_KEY_SUBTITLE].orEmpty()
         )
         is SearchResult.ResolvedAddress -> Pair(suggestion.address.words, suggestion.address.nearestPlace)
     }
