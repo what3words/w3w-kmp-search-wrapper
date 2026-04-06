@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.what3words.core.types.common.W3WResult
 import com.what3words.search.wrapper.core.SearchResult
-import com.what3words.search.wrapper.core.W3WSearchClient
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,10 +22,13 @@ sealed class SearchAction {
     data class QueryChanged(val query: String) : SearchAction()
     data class SuggestionSelected(val suggestion: SearchResult) : SearchAction()
     data object ClearQuery : SearchAction()
+    data object SwitchMapProvider : SearchAction()
 }
 
 data class UiState(
     val query: String = "",
+    val mapProvider: MapProvider = MapProvider.Google,
+    val mapSwitcherEnabled: Boolean = true,
     val suggestions: List<SearchResult> = emptyList(),
     val resolvedAddress: SearchResult.ResolvedAddress? = null,
     val isSearching: Boolean = false,
@@ -36,7 +38,7 @@ data class UiState(
 
 @OptIn(FlowPreview::class)
 class SearchViewModel(
-    private val searchClient: W3WSearchClient,
+    private val searchClientProvider: SearchClientProvider,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UiState())
@@ -45,14 +47,15 @@ class SearchViewModel(
     private var searchTask: Job? = null
 
     init {
+        // Re-run search whenever the query or active provider changes.
         viewModelScope.launch {
             _uiState
-                .map { it.query }
-                .filter { it.isNotBlank() }
+                .map { it.query to it.mapProvider }
+                .filter { (query, _) -> query.isNotBlank() }
                 .debounce(300L)
                 .distinctUntilChanged()
-                .collect { q ->
-                    performSearch(q)
+                .collect { (query, _) ->
+                    performSearch(query)
                 }
         }
     }
@@ -61,7 +64,15 @@ class SearchViewModel(
         when (action) {
             is SearchAction.QueryChanged -> onQueryChange(action.query)
             is SearchAction.SuggestionSelected -> onSuggestionSelected(action.suggestion)
-            SearchAction.ClearQuery -> onQueryCleared()
+            is SearchAction.ClearQuery -> onQueryCleared()
+            is SearchAction.SwitchMapProvider -> switchMapProvider()
+        }
+    }
+
+    private fun switchMapProvider() {
+        _uiState.update {
+            val next = if (it.mapProvider == MapProvider.Google) MapProvider.Mapbox else MapProvider.Google
+            it.copy(mapProvider = next, query = "", suggestions = emptyList())
         }
     }
 
@@ -92,10 +103,11 @@ class SearchViewModel(
     private fun resolveAddress(suggestion: SearchResult.SearchSuggestion) {
         viewModelScope.launch {
             _uiState.update { it.copy(isResolving = true, error = null, resolvedAddress = null) }
-            when (val result = searchClient.resolve(suggestion)) {
-                is W3WResult.Success ->
+            when (val result = searchClientProvider.clientFor(_uiState.value.mapProvider).resolve(suggestion)) {
+                is W3WResult.Success -> {
+                    checkChineseAddressAndSwitchMap(result.value)
                     setSelectedAddress(result.value)
-
+                }
                 is W3WResult.Failure ->
                     _uiState.update {
                         it.copy(error = result.error.message ?: result.message ?: "Failed to resolve address")
@@ -103,6 +115,20 @@ class SearchViewModel(
             }
             _uiState.update { it.copy(isResolving = false) }
         }
+    }
+
+    private fun checkChineseAddressAndSwitchMap(address: SearchResult.ResolvedAddress) {
+        // Google Maps is required for China (CN) — Mapbox is not available there.
+        if (address.address.country.twoLetterCode == "CN" && _uiState.value.mapProvider == MapProvider.Mapbox) {
+            setMapSwitcherEnabled(false)
+            switchMapProvider()
+        } else {
+            setMapSwitcherEnabled(true)
+        }
+    }
+
+    private fun setMapSwitcherEnabled(enabled: Boolean) {
+        _uiState.update { it.copy(mapSwitcherEnabled = enabled) }
     }
 
     private fun setSelectedAddress(address: SearchResult.ResolvedAddress) {
@@ -123,7 +149,7 @@ class SearchViewModel(
 
         searchTask?.cancel()
         searchTask = viewModelScope.launch {
-            when (val result = searchClient.search(query)) {
+            when (val result = searchClientProvider.clientFor(_uiState.value.mapProvider).search(query)) {
                 is W3WResult.Success ->
                     _uiState.update {
                         it.copy(
@@ -145,10 +171,10 @@ class SearchViewModel(
     }
 
     class Factory(
-        private val searchClient: W3WSearchClient,
+        private val searchClientProvider: SearchClientProvider,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            SearchViewModel(searchClient) as T
+            SearchViewModel(searchClientProvider) as T
     }
 }
