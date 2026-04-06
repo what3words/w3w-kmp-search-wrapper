@@ -91,3 +91,4 @@ Dependencies/
 
 iOSInjectionProject/
 /secret.properties
+*.jks
