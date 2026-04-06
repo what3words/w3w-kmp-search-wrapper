@@ -98,7 +98,7 @@ class SearchViewModel(
 
                 is W3WResult.Failure ->
                     _uiState.update {
-                        it.copy(error = result.error.message ?: "Failed to resolve address")
+                        it.copy(error = result.error.message ?: result.message ?: "Failed to resolve address")
                     }
             }
             _uiState.update { it.copy(isResolving = false) }

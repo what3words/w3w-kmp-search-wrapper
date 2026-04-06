@@ -90,3 +90,5 @@ Dependencies/
 # https://github.com/johnno1962/injectionforxcode
 
 iOSInjectionProject/
+/secret.properties
+*.jks

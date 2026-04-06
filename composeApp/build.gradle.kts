@@ -1,7 +1,16 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+}
+
+val secretProperties = Properties().apply {
+    val secretPropertiesFile = rootProject.file("secret.properties")
+    if (secretPropertiesFile.exists()) {
+        secretPropertiesFile.inputStream().use(::load)
+    }
 }
 
 android {
@@ -15,13 +24,37 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        val wrapperApiKey: String = project.findProperty("PROD_API_KEY") as String? ?: ""
+        val placesApiKey: String = secretProperties.getProperty("PLACES_API") ?: ""
+        buildConfigField(
+            "String",
+            "PLACES_API",
+            "\"$placesApiKey\""
+        )
+
+        val wrapperApiKey: String = secretProperties.getProperty("PROD_API_KEY") ?: ""
 
         buildConfigField(
             "String",
             "W3W_WRAPPER_API_KEY",
             "\"$wrapperApiKey\""
         )
+    }
+    signingConfigs {
+        create("shared") {
+            val signingStoreFile = secretProperties.getProperty("SIGNING_STORE_FILE") ?: ""
+            storeFile = file(signingStoreFile)
+            storePassword = secretProperties.getProperty("SIGNING_STORE_PASSWORD") ?: ""
+            keyPassword = secretProperties.getProperty("SIGNING_KEY_PASSWORD") ?: ""
+            keyAlias = secretProperties.getProperty("SIGNING_KEY_ALIAS") ?: ""
+        }
+    }
+    buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("shared")
+        }
+        release {
+            signingConfig = signingConfigs.getByName("shared")
+        }
     }
     packaging {
         resources {

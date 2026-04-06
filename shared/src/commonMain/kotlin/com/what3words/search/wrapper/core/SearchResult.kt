@@ -28,10 +28,18 @@ sealed class SearchResult(open val query: String, open val providerId: String) {
      * Use [ResolvableSearchProvider.resolve] to convert this into a [ResolvedAddress].
      *
      * @property extras Provider-specific metadata associated with this suggestion.
+     *   Providers may include display keys such as `"title"` and `"subtitle"` in this map.
      */
     data class SearchSuggestion(
         override val query: String,
         override val providerId: String,
         val extras: Map<String, String>,
-    ) : SearchResult(query, providerId)
+    ) : SearchResult(query, providerId) {
+        companion object {
+            /** Extras key for the primary display text of a suggestion (e.g. place or street name). */
+            const val EXTRAS_KEY_TITLE = "title"
+            /** Extras key for the secondary display text of a suggestion (e.g. city or region). */
+            const val EXTRAS_KEY_SUBTITLE = "subtitle"
+        }
+    }
 }
