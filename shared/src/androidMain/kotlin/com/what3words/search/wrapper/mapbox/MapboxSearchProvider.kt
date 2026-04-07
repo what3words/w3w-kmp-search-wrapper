@@ -81,7 +81,6 @@ internal class MapboxSearchProvider internal constructor(
             }
 
             val results = response.body<MapboxFeatureCollection>().features
-                .take(config.maxResults)
                 .mapNotNull { feature ->
                     val lng = feature.center.getOrNull(0) ?: return@mapNotNull null
                     val lat = feature.center.getOrNull(1) ?: return@mapNotNull null

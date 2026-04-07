@@ -1,11 +1,7 @@
 package com.what3words.search.wrapper.mapbox
 
-import com.what3words.core.types.common.W3WError
-import io.ktor.client.call.body
-import io.ktor.client.statement.HttpResponse
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-
 
 @Serializable
 internal data class MapboxFeatureCollection(
@@ -15,9 +11,9 @@ internal data class MapboxFeatureCollection(
 /**
  * A single geocoding result feature.
  *
- * @property id Unique Mapbox feature identifier (e.g. `"place.17652"`).
- * @property text Primary display name for the place (e.g. `"Hanoi"`).
- * @property placeName Full human-readable name including parent contexts (e.g. `"Hanoi, Vietnam"`).
+ * @property id Unique Mapbox feature identifier (e.g. `"address.4839674036689214"`).
+ * @property text Primary display name for the place (e.g. `"Lê Thánh Tôn"`).
+ * @property placeName Full human-readable name including parent contexts (e.g. `"Lê Thánh Tôn, 71000, Bến Thành, Ho Chi Minh City, Vietnam"`).
  * @property center `[longitude, latitude]` coordinate pair for the place.
  * @property context Ordered list of parent administrative contexts (region, country, etc.).
  */

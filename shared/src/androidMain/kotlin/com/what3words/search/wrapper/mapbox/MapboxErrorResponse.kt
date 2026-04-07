@@ -11,7 +11,7 @@ internal data class MapboxErrorResponse(
 )
 
 @Serializable
-internal class MapboxApiError(
+internal data class MapboxApiError(
     val httpStatus: Int,
     val apiMessage: String,
 ) : W3WError(message = "[HTTP $httpStatus] $apiMessage")
