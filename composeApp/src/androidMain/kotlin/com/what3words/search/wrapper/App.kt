@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -56,6 +57,22 @@ fun App(viewModel: SearchViewModel) {
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
                     ),
+                    actions = {
+                        TextButton(
+                            enabled = uiState.mapSwitcherEnabled,
+                            onClick = {
+                                viewModel.handleAction(SearchAction.SwitchMapProvider)
+                            }
+                        ) {
+                            Text(
+                                when (uiState.mapProvider) {
+                                    MapProvider.Mapbox -> "Mapbox"
+                                    MapProvider.Google -> "Google Maps"
+                                },
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
                 )
             }
         ) { innerPadding ->

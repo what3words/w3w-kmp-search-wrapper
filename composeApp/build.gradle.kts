@@ -31,6 +31,13 @@ android {
             "\"$placesApiKey\""
         )
 
+        val mapboxApiKey: String = secretProperties.getProperty("MAPBOX_API") ?: ""
+        buildConfigField(
+            "String",
+            "MAPBOX_API",
+            "\"$mapboxApiKey\""
+        )
+
         val wrapperApiKey: String = secretProperties.getProperty("PROD_API_KEY") ?: ""
 
         buildConfigField(

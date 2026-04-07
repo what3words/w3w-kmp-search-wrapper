@@ -19,7 +19,7 @@ internal data class GooglePlacesErrorDetail(
 )
 
 @Serializable
-internal class GooglePlacesApiError(
+internal data class GooglePlacesApiError(
     val code: Int,
     val status: String,
     val apiMessage: String,
