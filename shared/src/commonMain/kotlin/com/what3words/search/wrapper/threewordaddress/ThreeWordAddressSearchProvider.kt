@@ -84,6 +84,7 @@ internal class ThreeWordAddressSearchProvider(
                     clipToCountry(*config.clippedCountries.toTypedArray())
                 }
             }
+            .focus(config.focus)
             .preferLand(config.preferLand)
             .inputType(W3WAutosuggestInputType.TEXT)
             .build()

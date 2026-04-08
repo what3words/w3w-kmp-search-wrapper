@@ -1,6 +1,7 @@
 package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.types.domain.W3WCountry
+import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.core.types.language.W3WLanguage
 import com.what3words.core.types.language.W3WRFC5646Language
 
@@ -17,4 +18,7 @@ data class ThreeWordAddressSearchConfig(
 
     /** Prefer suggestions on land instead of at sea. */
     var preferLand: Boolean = false,
+
+    /** Focus coordinates used to bias autosuggest ranking. */
+    var focus: W3WCoordinates? = null,
 )
