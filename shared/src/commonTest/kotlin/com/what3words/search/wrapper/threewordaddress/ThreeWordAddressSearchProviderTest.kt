@@ -307,7 +307,7 @@ class ThreeWordAddressSearchProviderTest {
             autosuggestResult = W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
             convertToCoordinatesResult = W3WResult.Success(fakeAddress())
         }
-        val config = defaultConfig.copy(clipToCountry = listOf(W3WCountry("GB"), W3WCountry("US")))
+        val config = defaultConfig.copy(clippedCountries = listOf(W3WCountry("GB"), W3WCountry("US")))
         val p = ThreeWordAddressSearchProvider(trackingDataSource, config)
 
         p.executeSearch("filled.count.soap")

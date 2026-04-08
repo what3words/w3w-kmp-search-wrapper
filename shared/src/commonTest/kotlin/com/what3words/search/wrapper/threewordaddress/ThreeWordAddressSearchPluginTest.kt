@@ -45,7 +45,7 @@ class ThreeWordAddressSearchPluginTest {
     fun config_defaultClipToCountryIsEmpty() {
         val config = ThreeWordAddressSearchConfig()
 
-        assertEquals(0, config.clipToCountry.size)
+        assertEquals(0, config.clippedCountries.size)
     }
 
     @Test

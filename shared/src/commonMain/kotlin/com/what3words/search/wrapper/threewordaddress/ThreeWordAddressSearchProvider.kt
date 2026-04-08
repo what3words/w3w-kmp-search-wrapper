@@ -4,6 +4,7 @@ import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WError
 import com.what3words.core.types.common.W3WResult
 import com.what3words.core.types.language.W3WRFC5646Language
+import com.what3words.core.types.options.W3WAutosuggestInputType
 import com.what3words.core.types.options.W3WAutosuggestOptions
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
@@ -34,23 +35,18 @@ internal class ThreeWordAddressSearchProvider(
 
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
-            executeSafely {
-                when (
-                    val result =
-                        textDataSource.autosuggest(normalizeQuery(query), buildAutosuggestOptions())
-                ) {
-                    is W3WResult.Success -> W3WResult.Success(
-                        result.value.map { suggestion ->
-                            SearchResult.ResolvedAddress(
-                                query = query,
-                                providerId = providerId,
-                                address = suggestion.w3wAddress,
-                            )
-                        },
-                    )
+            when (val result = textDataSource.autosuggest(normalizeQuery(query), buildAutosuggestOptions())) {
+                is W3WResult.Success -> W3WResult.Success(
+                    result.value.map { suggestion ->
+                        SearchResult.ResolvedAddress(
+                            query = query,
+                            providerId = providerId,
+                            address = suggestion.w3wAddress,
+                        )
+                    },
+                )
 
-                    is W3WResult.Failure -> W3WResult.Failure(result.error)
-                }
+                is W3WResult.Failure -> W3WResult.Failure(result.error)
             }
         }
 
@@ -59,45 +55,36 @@ internal class ThreeWordAddressSearchProvider(
             val words = data.extras[EXTRAS_KEY_WORDS]
                 ?: return@withContext W3WResult.Failure(W3WError("Missing words in suggestion extras"))
 
-            executeSafely {
-                when (val result = textDataSource.convertToCoordinates(words)) {
-                    is W3WResult.Success -> W3WResult.Success(
-                        SearchResult.ResolvedAddress(
-                            query = data.query,
-                            providerId = providerId,
-                            address = result.value,
-                        ),
-                    )
+            when (val result = textDataSource.convertToCoordinates(words)) {
+                is W3WResult.Success -> W3WResult.Success(
+                    SearchResult.ResolvedAddress(
+                        query = data.query,
+                        providerId = providerId,
+                        address = result.value,
+                    ),
+                )
 
-                    is W3WResult.Failure -> W3WResult.Failure(result.error)
-                }
+                is W3WResult.Failure -> W3WResult.Failure(result.error)
             }
         }
 
     private fun normalizeQuery(query: String): String =
         if (config.language.w3wCode == W3WRFC5646Language.VI.w3wCode) {
-            query.replace(" ", "").trim()
+            query.replace(" ", "")
         } else {
-            query.trim()
-        }
-
-    private inline fun <T> executeSafely(block: () -> W3WResult<T>): W3WResult<T> =
-        try {
-            block()
-        } catch (e: Exception) {
-            W3WResult.Failure(W3WError(e))
+            query
         }
 
     private fun buildAutosuggestOptions(): W3WAutosuggestOptions =
         W3WAutosuggestOptions.Builder()
             .language(config.language)
             .nResults(config.maxResults)
-            .nFocusResults(config.maxResults)
             .apply {
-                if (config.clipToCountry.isNotEmpty()) {
-                    clipToCountry(*config.clipToCountry.toTypedArray())
+                if (config.clippedCountries.isNotEmpty()) {
+                    clipToCountry(*config.clippedCountries.toTypedArray())
                 }
             }
             .preferLand(config.preferLand)
+            .inputType(W3WAutosuggestInputType.TEXT)
             .build()
 }

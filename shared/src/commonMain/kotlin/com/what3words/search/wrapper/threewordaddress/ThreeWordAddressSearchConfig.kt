@@ -10,7 +10,7 @@ data class ThreeWordAddressSearchConfig(
     var maxResults: Int = 3,
 
     /** Countries to clip results to. Empty means no clipping. */
-    var clipToCountry: List<W3WCountry> = emptyList(),
+    var clippedCountries: List<W3WCountry> = emptyList(),
 
     /** Language for returned what3words addresses. */
     var language: W3WLanguage = W3WRFC5646Language.EN_GB,
