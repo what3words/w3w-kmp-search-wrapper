@@ -1,12 +1,11 @@
 package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
-import com.what3words.core.types.common.W3WError
 import com.what3words.core.types.common.W3WResult
 import com.what3words.core.types.language.W3WRFC5646Language
 import com.what3words.core.types.options.W3WAutosuggestInputType
 import com.what3words.core.types.options.W3WAutosuggestOptions
-import com.what3words.search.wrapper.core.ResolvableSearchProvider
+import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.threewordaddress.helper.isA3WordAddress
 import kotlinx.coroutines.Dispatchers
@@ -16,21 +15,16 @@ import kotlinx.coroutines.withContext
 /** Unique identifier for the three-word address search provider. */
 const val THREE_WORD_ADDRESS_PROVIDER_ID = "ThreeWordAddressSearchProvider"
 
-/** Extras key for the raw (un-prefixed) words of a what3words suggestion. */
-internal const val EXTRAS_KEY_WORDS = "words"
-
 /**
  * Search provider for three-word address queries.
- * Uses autosuggest for search and convert-to-coordinates for resolution.
  */
 internal class ThreeWordAddressSearchProvider(
     private val textDataSource: W3WTextDataSource,
     private val config: ThreeWordAddressSearchConfig,
-) : ResolvableSearchProvider {
+) : SearchProvider {
 
     override val providerId: String = THREE_WORD_ADDRESS_PROVIDER_ID
 
-    /** Returns true when the query looks like a three-word address. */
     override fun canHandle(query: String): Boolean = query.isA3WordAddress()
 
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
@@ -44,24 +38,6 @@ internal class ThreeWordAddressSearchProvider(
                             address = suggestion.w3wAddress,
                         )
                     },
-                )
-
-                is W3WResult.Failure -> W3WResult.Failure(result.error)
-            }
-        }
-
-    override suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> =
-        withContext(Dispatchers.IO) {
-            val words = data.extras[EXTRAS_KEY_WORDS]
-                ?: return@withContext W3WResult.Failure(W3WError("Missing words in suggestion extras"))
-
-            when (val result = textDataSource.convertToCoordinates(words)) {
-                is W3WResult.Success -> W3WResult.Success(
-                    SearchResult.ResolvedAddress(
-                        query = data.query,
-                        providerId = providerId,
-                        address = result.value,
-                    ),
                 )
 
                 is W3WResult.Failure -> W3WResult.Failure(result.error)

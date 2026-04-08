@@ -2,22 +2,21 @@ package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
-import com.what3words.core.types.domain.W3WAddress
 import com.what3words.core.types.domain.W3WSuggestion
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.core.types.geometry.W3WGridSection
 import com.what3words.core.types.geometry.W3WRectangle
 import com.what3words.core.types.language.W3WLanguage
-import com.what3words.core.types.language.W3WRFC5646Language
 import com.what3words.core.types.language.W3WProprietaryLanguage
+import com.what3words.core.types.language.W3WRFC5646Language
 import com.what3words.core.types.options.W3WAutosuggestOptions
 import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.W3WSearchClient
 import com.what3words.search.wrapper.error.ProviderNotFoundException
-import com.what3words.search.wrapper.error.ProviderNotResolvableException
 import com.what3words.search.wrapper.fixtures.fakeAddress
 import com.what3words.search.wrapper.fixtures.pluginFor
+import com.what3words.search.wrapper.fixtures.suggestion
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -30,13 +29,17 @@ class ThreeWordAddressSearchClientIntegrationTest {
         override fun version(version: W3WTextDataSource.Version): String? = null
         override fun convertTo3wa(coordinates: W3WCoordinates, language: W3WLanguage) =
             W3WResult.Success(fakeAddress())
+
         override fun convertToCoordinates(words: String) = W3WResult.Success(fakeAddress())
         override fun autosuggest(input: String, options: W3WAutosuggestOptions?) =
             W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
+
         override fun gridSection(boundingBox: W3WRectangle): W3WResult<W3WGridSection> =
             throw NotImplementedError()
+
         override fun availableLanguages(): W3WResult<Set<W3WProprietaryLanguage>> =
             throw NotImplementedError()
+
         override fun isValid3wa(words: String): W3WResult<Boolean> =
             throw NotImplementedError()
     }
@@ -66,12 +69,6 @@ class ThreeWordAddressSearchClientIntegrationTest {
         override fun canHandle(query: String) = handles
         override suspend fun executeSearch(query: String) = W3WResult.Success(results)
     }
-
-    private fun suggestion(providerId: String) = SearchResult.SearchSuggestion(
-        query = "test",
-        providerId = providerId,
-        extras = emptyMap(),
-    )
 
     // ── search ────────────────────────────────────────────────────────────────
 
@@ -129,54 +126,6 @@ class ThreeWordAddressSearchClientIntegrationTest {
         assertIs<ProviderNotFoundException>(result.error)
     }
 
-    // ── resolve ───────────────────────────────────────────────────────────────
-
-    @Test
-    fun resolve_delegatesToThreeWordAddressProvider_andReturnsAddress() = runTest {
-        val client = buildClient()
-        val suggestion = SearchResult.SearchSuggestion(
-            query = "filled.count.soap",
-            providerId = THREE_WORD_ADDRESS_PROVIDER_ID,
-            extras = mapOf("words" to "filled.count.soap"),
-        )
-
-        val result = client.resolve(suggestion)
-
-        assertIs<W3WResult.Success<SearchResult.ResolvedAddress>>(result)
-        assertEquals(THREE_WORD_ADDRESS_PROVIDER_ID, result.value.providerId)
-        assertEquals(fakeAddress().words, result.value.address.words)
-    }
-
-    @Test
-    fun resolve_withUnknownProviderId_returnsProviderNotResolvable() = runTest {
-        val client = buildClient()
-        val suggestion = SearchResult.SearchSuggestion(
-            query = "test",
-            providerId = "unknown_provider",
-            extras = mapOf("words" to "test"),
-        )
-
-        val result = client.resolve(suggestion)
-
-        assertIs<W3WResult.Failure<SearchResult.ResolvedAddress>>(result)
-        assertIs<ProviderNotResolvableException>(result.error)
-    }
-
-    @Test
-    fun resolve_withNonResolvableProvider_returnsProviderNotResolvable() = runTest {
-        val client = buildClient()
-        val suggestion = SearchResult.SearchSuggestion(
-            query = "test",
-            providerId = "fallback",
-            extras = emptyMap(),
-        )
-
-        val result = client.resolve(suggestion)
-
-        assertIs<W3WResult.Failure<SearchResult.ResolvedAddress>>(result)
-        assertIs<ProviderNotResolvableException>(result.error)
-    }
-
     // ── priority handling ─────────────────────────────────────────────────────
 
     @Test
@@ -220,15 +169,19 @@ class ThreeWordAddressSearchClientIntegrationTest {
             override fun version(version: W3WTextDataSource.Version): String? = null
             override fun convertTo3wa(coordinates: W3WCoordinates, language: W3WLanguage) =
                 W3WResult.Success(fakeAddress())
+
             override fun convertToCoordinates(words: String) = W3WResult.Success(fakeAddress())
             override fun autosuggest(input: String, options: W3WAutosuggestOptions?): W3WResult<List<W3WSuggestion>> {
                 capturedOptions = options
                 return W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
             }
+
             override fun gridSection(boundingBox: W3WRectangle): W3WResult<W3WGridSection> =
                 throw NotImplementedError()
+
             override fun availableLanguages(): W3WResult<Set<W3WProprietaryLanguage>> =
                 throw NotImplementedError()
+
             override fun isValid3wa(words: String): W3WResult<Boolean> =
                 throw NotImplementedError()
         }
@@ -250,15 +203,19 @@ class ThreeWordAddressSearchClientIntegrationTest {
             override fun version(version: W3WTextDataSource.Version): String? = null
             override fun convertTo3wa(coordinates: W3WCoordinates, language: W3WLanguage) =
                 W3WResult.Success(fakeAddress())
+
             override fun convertToCoordinates(words: String) = W3WResult.Success(fakeAddress())
             override fun autosuggest(input: String, options: W3WAutosuggestOptions?): W3WResult<List<W3WSuggestion>> {
                 capturedOptions = options
                 return W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
             }
+
             override fun gridSection(boundingBox: W3WRectangle): W3WResult<W3WGridSection> =
                 throw NotImplementedError()
+
             override fun availableLanguages(): W3WResult<Set<W3WProprietaryLanguage>> =
                 throw NotImplementedError()
+
             override fun isValid3wa(words: String): W3WResult<Boolean> =
                 throw NotImplementedError()
         }
