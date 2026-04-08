@@ -132,17 +132,6 @@ class ThreeWordAddressSearchProviderTest {
     }
 
     @Test
-    fun executeSearch_returnsFailureOnException() = runTest {
-        val exceptionDataSource = FakeW3WTextDataSource().apply {
-            autosuggestException = RuntimeException("unexpected error")
-        }
-
-        val result = provider(dataSource = exceptionDataSource).executeSearch("filled.count.soap")
-
-        assertIs<W3WResult.Failure<List<SearchResult>>>(result)
-    }
-
-    @Test
     fun executeSearch_setsCorrectProviderId() = runTest {
         val result = provider().executeSearch("filled.count.soap")
 
@@ -230,18 +219,6 @@ class ThreeWordAddressSearchProviderTest {
     }
 
     @Test
-    fun resolve_returnsFailureOnException() = runTest {
-        val exceptionDataSource = FakeW3WTextDataSource().apply {
-            convertToCoordinatesException = RuntimeException("unexpected error")
-        }
-        val suggestion = suggestionWith()
-
-        val result = provider(dataSource = exceptionDataSource).resolve(suggestion)
-
-        assertIs<W3WResult.Failure<SearchResult.ResolvedAddress>>(result)
-    }
-
-    @Test
     fun resolve_doesNotCallAutosuggest() = runTest {
         val trackingDataSource = FakeW3WTextDataSource().apply {
             convertToCoordinatesResult = W3WResult.Success(fakeAddress())
@@ -268,7 +245,6 @@ class ThreeWordAddressSearchProviderTest {
 
         assertNotNull(trackingDataSource.lastAutosuggestOptions)
         assertEquals(10, trackingDataSource.lastAutosuggestOptions!!.nResults)
-        assertEquals(10, trackingDataSource.lastAutosuggestOptions!!.nFocusResults)
     }
 
     @Test

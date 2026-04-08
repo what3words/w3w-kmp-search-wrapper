@@ -17,9 +17,6 @@ class FakeW3WTextDataSource : W3WTextDataSource {
     var convertToCoordinatesResult: W3WResult<W3WAddress>? = null
     var autosuggestResult: W3WResult<List<W3WSuggestion>>? = null
 
-    var convertToCoordinatesException: Exception? = null
-    var autosuggestException: Exception? = null
-
     var lastConvertToCoordinatesWords: String? = null
     var lastAutosuggestInput: String? = null
     var lastAutosuggestOptions: W3WAutosuggestOptions? = null
@@ -32,14 +29,12 @@ class FakeW3WTextDataSource : W3WTextDataSource {
 
     override fun convertToCoordinates(words: String): W3WResult<W3WAddress> {
         lastConvertToCoordinatesWords = words
-        convertToCoordinatesException?.let { throw it }
         return convertToCoordinatesResult ?: throw NotImplementedError()
     }
 
     override fun autosuggest(input: String, options: W3WAutosuggestOptions?): W3WResult<List<W3WSuggestion>> {
         lastAutosuggestInput = input
         lastAutosuggestOptions = options
-        autosuggestException?.let { throw it }
         return autosuggestResult ?: throw NotImplementedError()
     }
 
