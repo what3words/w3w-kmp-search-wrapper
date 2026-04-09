@@ -1,0 +1,26 @@
+name: CD - Main
+
+# Triggered when any branch is merged into main.
+# Publishes the official release to Maven Central, builds an optimized iOS framework,
+# and creates a GitHub latest release tagged with the official version.
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish-android-release:
+    name: Publish Android Release
+    uses: ./.github/workflows/base-publish-android.yml
+    with:
+      snapshot: false
+    secrets: inherit
+
+  build-ios-release:
+    name: Build iOS Release
+    uses: ./.github/workflows/base-build-ios.yml
+    with:
+      build-debug: false
+      snapshot: false
+      prerelease: false
+    secrets: inherit

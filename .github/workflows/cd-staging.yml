@@ -1,0 +1,26 @@
+name: CD - Staging
+
+# Triggered when any branch is merged into staging.
+# Publishes a SNAPSHOT to Maven Central, builds a debuggable iOS framework,
+# and creates a GitHub pre-release tagged with the SNAPSHOT version.
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  publish-android-snapshot:
+    name: Publish Android SNAPSHOT
+    uses: ./.github/workflows/base-publish-android.yml
+    with:
+      snapshot: true
+    secrets: inherit
+
+  build-ios-debug:
+    name: Build iOS Debug
+    uses: ./.github/workflows/base-build-ios.yml
+    with:
+      build-debug: true
+      snapshot: true
+      prerelease: true
+    secrets: inherit
