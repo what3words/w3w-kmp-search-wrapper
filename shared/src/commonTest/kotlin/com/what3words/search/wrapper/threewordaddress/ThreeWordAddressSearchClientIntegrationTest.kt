@@ -221,7 +221,7 @@ class ThreeWordAddressSearchClientIntegrationTest {
         }
         val client = W3WSearchClient(trackingDataSource) {
             install(ThreeWordAddressSearch, priority = 10) {
-                language = W3WRFC5646Language.FR_FR
+                fallbackLanguage = W3WRFC5646Language.FR_FR
             }
         }
 

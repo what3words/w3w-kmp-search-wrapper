@@ -2,7 +2,6 @@ package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
-import com.what3words.core.types.language.W3WRFC5646Language
 import com.what3words.core.types.options.W3WAutosuggestInputType
 import com.what3words.core.types.options.W3WAutosuggestOptions
 import com.what3words.search.wrapper.core.SearchProvider
@@ -27,9 +26,11 @@ internal class ThreeWordAddressSearchProvider(
 
     override fun canHandle(query: String): Boolean = query.isA3WordAddress()
 
+    private val autosuggestOptions by lazy { buildAutosuggestOptions() }
+
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
-            when (val result = textDataSource.autosuggest(normalizeQuery(query), buildAutosuggestOptions())) {
+            when (val result = textDataSource.autosuggest(query, autosuggestOptions)) {
                 is W3WResult.Success -> W3WResult.Success(
                     result.value.map { suggestion ->
                         SearchResult.ResolvedAddress(
@@ -44,16 +45,9 @@ internal class ThreeWordAddressSearchProvider(
             }
         }
 
-    private fun normalizeQuery(query: String): String =
-        if (config.language.w3wCode == W3WRFC5646Language.VI.w3wCode) {
-            query.replace(" ", "")
-        } else {
-            query
-        }
-
     private fun buildAutosuggestOptions(): W3WAutosuggestOptions =
         W3WAutosuggestOptions.Builder()
-            .language(config.language)
+            .language(config.fallbackLanguage)
             .nResults(config.maxResults)
             .apply {
                 if (config.clippedCountries.isNotEmpty()) {

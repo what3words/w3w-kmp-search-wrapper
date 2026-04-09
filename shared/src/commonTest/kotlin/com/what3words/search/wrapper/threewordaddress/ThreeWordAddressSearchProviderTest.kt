@@ -167,27 +167,12 @@ class ThreeWordAddressSearchProviderTest {
     }
 
     @Test
-    fun executeSearch_forVietnameseLanguage_removesInternalSpacesBeforeAutosuggest() = runTest {
-        val trackingDataSource = FakeW3WTextDataSource().apply {
-            autosuggestResult = W3WResult.Success(emptyList())
-        }
-        val p = ThreeWordAddressSearchProvider(
-            trackingDataSource,
-            defaultConfig.copy(language = W3WRFC5646Language.VI),
-        )
-
-        p.executeSearch("tinh xảo.hòa hợp.đường tàu")
-
-        assertEquals("tinhxảo.hòahợp.đườngtàu", trackingDataSource.lastAutosuggestInput)
-    }
-
-    @Test
     fun executeSearch_respectsLanguageConfig() = runTest {
         val trackingDataSource = FakeW3WTextDataSource().apply {
             autosuggestResult = W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
             convertToCoordinatesResult = W3WResult.Success(fakeAddress())
         }
-        val config = defaultConfig.copy(language = W3WRFC5646Language.FR_FR)
+        val config = defaultConfig.copy(fallbackLanguage = W3WRFC5646Language.FR_FR)
         val p = ThreeWordAddressSearchProvider(trackingDataSource, config)
 
         p.executeSearch("filled.count.soap")

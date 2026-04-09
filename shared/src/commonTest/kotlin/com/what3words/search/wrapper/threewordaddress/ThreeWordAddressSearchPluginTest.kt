@@ -1,6 +1,5 @@
 package com.what3words.search.wrapper.threewordaddress
 
-import com.what3words.core.types.language.W3WRFC5646Language
 import com.what3words.search.wrapper.fake.FakeW3WTextDataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -28,13 +27,6 @@ class ThreeWordAddressSearchPluginTest {
     }
 
     @Test
-    fun config_defaultLanguageIsEnGb() {
-        val config = ThreeWordAddressSearchConfig()
-
-        assertEquals(W3WRFC5646Language.EN_GB, config.language)
-    }
-
-    @Test
     fun config_defaultMaxResultsIsThree() {
         val config = ThreeWordAddressSearchConfig()
 
@@ -49,9 +41,9 @@ class ThreeWordAddressSearchPluginTest {
     }
 
     @Test
-    fun config_defaultPreferLandIsFalse() {
+    fun config_defaultPreferLandIsTrue() {
         val config = ThreeWordAddressSearchConfig()
 
-        assertEquals(false, config.preferLand)
+        assertEquals(true, config.preferLand)
     }
 }
