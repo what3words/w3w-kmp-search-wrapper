@@ -6,6 +6,9 @@ plugins {
     alias(libs.plugins.skie)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.kmmbridge)
+    alias(libs.plugins.vanniktech.mavenPublish)
+    id("maven-publish")
+    id("signing")
 }
 
 kotlin {
@@ -58,6 +61,48 @@ kotlin {
             implementation(libs.ktor.client.mock)
             implementation(libs.ktor.serialization)
             implementation(libs.ktor.serialization.json)
+        }
+    }
+}
+
+skie {
+    features {
+        enableFutureCombineExtensionPreview = true
+        enableFlowCombineConvertorPreview = true
+    }
+    build {
+        produceDistributableFramework()
+    }
+}
+
+kmmbridge {
+    gitHubReleaseArtifacts()
+    spm(swiftToolVersion = "5.8") {
+        iOS { v("14") }
+    }
+}
+
+mavenPublishing {
+    publishToMavenCentral()
+
+    signAllPublications()
+
+    pom {
+        name = "what3words search wrapper"
+        description = "Search wrapper for what3words address and other 3rd party search providers"
+        inceptionYear = "2026"
+        url = "https://github.com/what3words/w3w-kmp-search-wrapper"
+        developers {
+            developer {
+                id = "what3words"
+                name = "what3words"
+                url = "development@what3words.com"
+            }
+        }
+        scm {
+            url = "https://github.com/what3words/w3w-kmp-search-wrapper/tree/master"
+            connection = "scm:git:git://github.com/what3words/w3w-kmp-search-wrapper.git"
+            developerConnection = "scm:git:ssh://git@github.com/what3words/w3w-kmp-search-wrapper.git"
         }
     }
 }
