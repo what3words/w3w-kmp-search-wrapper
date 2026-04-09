@@ -48,8 +48,10 @@ android {
     }
     signingConfigs {
         create("shared") {
-            val signingStoreFile = secretProperties.getProperty("SIGNING_STORE_FILE") ?: ""
-            storeFile = file(signingStoreFile)
+            // storeFile is nullable; leave it null when secret.properties is absent (e.g. CI unit-test runs)
+            storeFile = secretProperties.getProperty("SIGNING_STORE_FILE")
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { file(it) }
             storePassword = secretProperties.getProperty("SIGNING_STORE_PASSWORD") ?: ""
             keyPassword = secretProperties.getProperty("SIGNING_KEY_PASSWORD") ?: ""
             keyAlias = secretProperties.getProperty("SIGNING_KEY_ALIAS") ?: ""
