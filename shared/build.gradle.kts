@@ -65,6 +65,23 @@ kotlin {
     }
 }
 
+skie {
+    features {
+        enableFutureCombineExtensionPreview = true
+        enableFlowCombineConvertorPreview = true
+    }
+    build {
+        produceDistributableFramework()
+    }
+}
+
+kmmbridge {
+    gitHubReleaseArtifacts()
+    spm(swiftToolVersion = "5.8") {
+        iOS { v("14") }
+    }
+}
+
 mavenPublishing {
     publishToMavenCentral()
 
