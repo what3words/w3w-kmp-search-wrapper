@@ -9,6 +9,7 @@ import com.what3words.search.wrapper.googleplaces.GooglePlacesConfig
 import com.what3words.search.wrapper.googleplaces.GooglePlacesSearch
 import com.what3words.search.wrapper.mapbox.MapboxConfig
 import com.what3words.search.wrapper.mapbox.MapboxSearch
+import com.what3words.search.wrapper.maybethreewordaddress.MayBeAThreeWordAddressSearch
 import com.what3words.search.wrapper.threewordaddress.ThreeWordAddressSearch
 
 /** The map provider used to back the external place search. */
@@ -24,6 +25,7 @@ class SearchClientProvider(
             install(BritishNationalGridSearch, priority = 10)
             install(CoordinatesSearch, priority = 9)
             install(ThreeWordAddressSearch, priority = 8)
+            install(MayBeAThreeWordAddressSearch, priority = 1)
             block()
         }
 

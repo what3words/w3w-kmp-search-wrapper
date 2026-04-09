@@ -35,11 +35,19 @@ sealed class SearchResult(open val query: String, open val providerId: String) {
         override val providerId: String,
         val extras: Map<String, String>,
     ) : SearchResult(query, providerId) {
+
+        /** Returns a normalized "did you mean" three-word address when present. */
+        fun suggestedAddressOrNull(): String? = extras[EXTRAS_KEY_SUGGESTED_ADDRESS]
+
         companion object {
             /** Extras key for the primary display text of a suggestion (e.g. place or street name). */
             const val EXTRAS_KEY_TITLE = "title"
+
             /** Extras key for the secondary display text of a suggestion (e.g. city or region). */
             const val EXTRAS_KEY_SUBTITLE = "subtitle"
+
+            /** Extras key for a did-you-mean three-word address suggestion (e.g. "///filled.count.soap"). */
+            const val EXTRAS_KEY_SUGGESTED_ADDRESS = "suggestedAddress"
         }
     }
 }

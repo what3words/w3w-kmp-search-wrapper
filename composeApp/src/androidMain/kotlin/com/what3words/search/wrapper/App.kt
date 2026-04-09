@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -80,6 +81,7 @@ fun App(viewModel: SearchViewModel) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
+                    .imePadding()
             ) {
                 // ── Search field ──────────────────────────────────────────────
                 OutlinedTextField(
@@ -159,6 +161,27 @@ fun App(viewModel: SearchViewModel) {
                             }
                         }
                     }
+
+                }
+
+                uiState.didYouMean?.let { suggestion ->
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text("Did you mean...", modifier = Modifier.padding(horizontal = 16.dp))
+                    Text(
+                        text = suggestion,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clickable {
+                                viewModel.handleAction(SearchAction.QueryChanged(suggestion))
+                            },
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+
+                if (uiState.didYouMean == null && uiState.suggestions.isEmpty() && !uiState.query.isEmpty()) {
+                    Text("No address found", modifier = Modifier.padding(horizontal = 16.dp))
                 }
             }
         }
@@ -182,7 +205,7 @@ private fun SuggestionItem(
 
     ListItem(
         headlineContent = { Text(title) },
-        supportingContent = if (!subtitle.isNullOrEmpty()) {
+        supportingContent = if (subtitle.isNotEmpty()) {
             { Text(subtitle, style = MaterialTheme.typography.bodySmall) }
         } else null,
         leadingContent = {

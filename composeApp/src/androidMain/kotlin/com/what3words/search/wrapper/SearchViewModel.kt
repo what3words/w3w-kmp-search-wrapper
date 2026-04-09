@@ -33,6 +33,7 @@ data class UiState(
     val resolvedAddress: SearchResult.ResolvedAddress? = null,
     val isSearching: Boolean = false,
     val isResolving: Boolean = false,
+    val didYouMean: String? = null,
     val error: String? = null,
 )
 
@@ -83,6 +84,7 @@ class SearchViewModel(
                 resolvedAddress = null,
                 error = null,
                 isSearching = false,
+                didYouMean = null,
                 suggestions = if (newQuery.isBlank()) emptyList() else it.suggestions,
             )
         }
@@ -138,6 +140,7 @@ class SearchViewModel(
                 it.copy(
                     resolvedAddress = address,
                     suggestions = emptyList(),
+                    didYouMean = null,
                     query = ""
                 )
             }
@@ -149,19 +152,29 @@ class SearchViewModel(
 
         searchTask?.cancel()
         searchTask = viewModelScope.launch {
-            when (val result = searchClientProvider.clientFor(_uiState.value.mapProvider).search(query)) {
-                is W3WResult.Success ->
-                    _uiState.update {
-                        it.copy(
-                            suggestions = result.value,
-                            isSearching = false,
-                        )
+            val client = searchClientProvider.clientFor(_uiState.value.mapProvider)
+            when (val result = client.search(query)) {
+                is W3WResult.Success -> {
+                    val didYouMean = result.value
+                        .firstOrNull { (it as? SearchResult.SearchSuggestion)?.suggestedAddressOrNull() != null }
+
+                    val suggestions = result.value.filter {
+                        it != didYouMean
                     }
 
+                    _uiState.update {
+                        it.copy(
+                            suggestions = suggestions,
+                            didYouMean = (didYouMean as? SearchResult.SearchSuggestion)?.suggestedAddressOrNull(),
+                            isSearching = false
+                        )
+                    }
+                }
                 is W3WResult.Failure ->
                     _uiState.update {
                         it.copy(
                             suggestions = emptyList(),
+                            didYouMean = null,
                             error = result.error.message ?: "Search failed",
                             isSearching = false,
                         )
