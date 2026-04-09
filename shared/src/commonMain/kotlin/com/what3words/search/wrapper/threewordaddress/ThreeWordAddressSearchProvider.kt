@@ -2,8 +2,7 @@ package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
-import com.what3words.core.types.options.W3WAutosuggestInputType
-import com.what3words.core.types.options.W3WAutosuggestOptions
+
 import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.threewordaddress.helper.isA3WordAddress
@@ -26,7 +25,7 @@ internal class ThreeWordAddressSearchProvider(
 
     override fun canHandle(query: String): Boolean = query.isA3WordAddress()
 
-    private val autosuggestOptions by lazy { buildAutosuggestOptions() }
+    private val autosuggestOptions by lazy { config.toAutosuggestOptions() }
 
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
@@ -45,17 +44,4 @@ internal class ThreeWordAddressSearchProvider(
             }
         }
 
-    private fun buildAutosuggestOptions(): W3WAutosuggestOptions =
-        W3WAutosuggestOptions.Builder()
-            .language(config.fallbackLanguage)
-            .nResults(config.maxResults)
-            .apply {
-                if (config.clippedCountries.isNotEmpty()) {
-                    clipToCountry(*config.clippedCountries.toTypedArray())
-                }
-            }
-            .focus(config.focus)
-            .preferLand(config.preferLand)
-            .inputType(W3WAutosuggestInputType.TEXT)
-            .build()
 }
