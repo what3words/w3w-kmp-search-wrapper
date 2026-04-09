@@ -104,6 +104,18 @@ class MayBeAThreeWordAddressSearchProviderTest {
     }
 
     @Test
+    fun executeSearch_withSlashPrefixAndSpaces_returnsResolvedAddressesFromAutosuggest() = runTest {
+        val result = provider().executeSearch("/// filled count soap ")
+
+        assertIs<W3WResult.Success<List<SearchResult>>>(result)
+        assertEquals(1, result.value.size)
+        val address = assertIs<SearchResult.ResolvedAddress>(result.value.first())
+        assertEquals(MAY_BE_THREE_WORD_ADDRESS_PROVIDER_ID, address.providerId)
+        assertEquals("filled.count.soap", address.address.words)
+        assertEquals("/// filled count soap ", address.query)
+    }
+
+    @Test
     fun executeSearch_withoutSlashPrefix_returnsSuggestedAddressWhenCharactersMatch() = runTest {
         val result = provider().executeSearch("filled count soap")
 

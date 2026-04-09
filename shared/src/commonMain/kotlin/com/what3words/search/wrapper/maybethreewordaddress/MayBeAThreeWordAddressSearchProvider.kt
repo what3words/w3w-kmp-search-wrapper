@@ -6,6 +6,7 @@ import com.what3words.core.types.common.W3WResult
 import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.SearchResult.SearchSuggestion.Companion.EXTRAS_KEY_SUGGESTED_ADDRESS
+import com.what3words.search.wrapper.maybethreewordaddress.helper.lettersOnly
 import com.what3words.search.wrapper.maybethreewordaddress.helper.mayBeA3WordAddress
 import com.what3words.search.wrapper.threewordaddress.ThreeWordAddressSearchConfig
 import com.what3words.search.wrapper.threewordaddress.toAutosuggestOptions
@@ -17,7 +18,6 @@ import kotlinx.coroutines.withContext
 const val MAY_BE_THREE_WORD_ADDRESS_PROVIDER_ID = "MayBeAThreeWordAddressSearchProvider"
 
 private const val THREE_WORD_ADDRESS_PREFIX = "///"
-private val NON_LETTER_REGEX = "\\P{L}+".toRegex()
 
 /**
  * Search provider for loose three-word-address-like queries.
@@ -30,17 +30,16 @@ internal class MayBeAThreeWordAddressSearchProvider(
 
     override val providerId: String = MAY_BE_THREE_WORD_ADDRESS_PROVIDER_ID
 
-    override fun canHandle(query: String): Boolean = query.mayBeA3WordAddress() != null
+    private val autosuggestOptions by lazy { config.toAutosuggestOptions() }
 
-    private val option by lazy { config.toAutosuggestOptions() }
+    override fun canHandle(query: String): Boolean = query.mayBeA3WordAddress() != null
 
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
-            val maybe3wa =
-                query.mayBeA3WordAddress()
-                    ?: return@withContext W3WResult.Failure(W3WError("Query is not a valid three-word-address-like input"))
+            val maybe3wa = query.mayBeA3WordAddress()
+                ?: return@withContext W3WResult.Failure(W3WError("Query is not a valid three-word-address-like input"))
 
-            when (val result = textDataSource.autosuggest(maybe3wa, option)) {
+            when (val result = textDataSource.autosuggest(maybe3wa, autosuggestOptions)) {
                 is W3WResult.Success -> W3WResult.Success(
                     if (query.startsWith(THREE_WORD_ADDRESS_PREFIX)) {
                         result.value.map { suggestion ->
@@ -71,5 +70,3 @@ internal class MayBeAThreeWordAddressSearchProvider(
             }
         }
 }
-
-private fun String.lettersOnly(): String = replace(NON_LETTER_REGEX, "").lowercase()
