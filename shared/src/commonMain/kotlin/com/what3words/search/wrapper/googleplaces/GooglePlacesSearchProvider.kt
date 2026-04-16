@@ -6,6 +6,8 @@ import com.what3words.core.types.common.W3WResult
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.googleplaces.model.AutocompleteRequest
 import com.what3words.search.wrapper.googleplaces.model.AutocompleteResponse
 import com.what3words.search.wrapper.googleplaces.model.PlaceDetailsResponse
@@ -155,13 +157,13 @@ internal class GooglePlacesSearchProvider internal constructor(
                         extras = buildMap {
                             put(EXTRAS_KEY_PLACE_ID, prediction.placeId)
                             put(
-                                SearchResult.SearchSuggestion.EXTRAS_KEY_TITLE,
+                                EXTRAS_KEY_TITLE,
                                 prediction.structuredFormat?.mainText?.text
                                     ?: prediction.text?.text.orEmpty()
                             )
                             prediction.structuredFormat?.secondaryText?.text
                                 ?.takeIf { it.isNotEmpty() }
-                                ?.let { put(SearchResult.SearchSuggestion.EXTRAS_KEY_SUBTITLE, it) }
+                                ?.let { put(EXTRAS_KEY_SUBTITLE, it) }
                         }
                     )
                 }
