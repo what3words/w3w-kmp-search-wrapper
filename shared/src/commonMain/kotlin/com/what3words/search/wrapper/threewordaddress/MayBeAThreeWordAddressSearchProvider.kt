@@ -1,4 +1,4 @@
-package com.what3words.search.wrapper.maybethreewordaddress
+package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
@@ -8,10 +8,8 @@ import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_RANK
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUGGESTED_ADDRESS
-import com.what3words.search.wrapper.maybethreewordaddress.helper.lettersOnly
-import com.what3words.search.wrapper.maybethreewordaddress.helper.mayBeA3WordAddress
-import com.what3words.search.wrapper.threewordaddress.ThreeWordAddressSearchConfig
-import com.what3words.search.wrapper.threewordaddress.toAutosuggestOptions
+import com.what3words.search.wrapper.threewordaddress.helper.lettersOnly
+import com.what3words.search.wrapper.threewordaddress.helper.mayBeA3WordAddress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext

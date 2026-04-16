@@ -1,4 +1,4 @@
-package com.what3words.search.wrapper.maybethreewordaddress
+package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WError
@@ -7,7 +7,7 @@ import com.what3words.core.types.domain.W3WCountry
 import com.what3words.core.types.domain.W3WSuggestion
 import com.what3words.core.types.language.W3WRFC5646Language
 import com.what3words.search.wrapper.core.SearchResult
-import com.what3words.search.wrapper.core.SearchResult.SearchSuggestion.Companion.EXTRAS_KEY_SUGGESTED_ADDRESS
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUGGESTED_ADDRESS
 import com.what3words.search.wrapper.fake.FakeW3WTextDataSource
 import com.what3words.search.wrapper.fixtures.fakeAddress
 import com.what3words.search.wrapper.threewordaddress.ThreeWordAddressSearchConfig
