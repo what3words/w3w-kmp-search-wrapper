@@ -2,9 +2,13 @@ package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
-
-import com.what3words.search.wrapper.core.SearchProvider
+import com.what3words.search.wrapper.error.MissingSuggestionTitleException
+import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_RANK
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.threewordaddress.helper.isA3WordAddress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -18,25 +22,53 @@ const val THREE_WORD_ADDRESS_PROVIDER_ID = "ThreeWordAddressSearchProvider"
  */
 internal class ThreeWordAddressSearchProvider(
     private val textDataSource: W3WTextDataSource,
-    private val config: ThreeWordAddressSearchConfig,
-) : SearchProvider {
+    config: ThreeWordAddressSearchConfig,
+) : ResolvableSearchProvider {
 
     override val providerId: String = THREE_WORD_ADDRESS_PROVIDER_ID
 
     override fun canHandle(query: String): Boolean = query.isA3WordAddress()
 
-    private val autosuggestOptions by lazy { config.toAutosuggestOptions() }
+    private val autosuggestOptions = config.toAutosuggestOptions()
 
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
             when (val result = textDataSource.autosuggest(query, autosuggestOptions)) {
                 is W3WResult.Success -> W3WResult.Success(
                     result.value.map { suggestion ->
-                        SearchResult.ResolvedAddress(
-                            query = query,
-                            providerId = providerId,
-                            address = suggestion.w3wAddress,
-                        )
+                        if (suggestion.w3wAddress.center != null) {
+                            SearchResult.ResolvedAddress(
+                                query = query,
+                                providerId = providerId,
+                                address = suggestion.w3wAddress,
+                                extras = buildMap {
+                                    put(EXTRAS_KEY_RANK, suggestion.rank.toString())
+                                    suggestion.distanceToFocus?.let {
+                                        put(
+                                            EXTRAS_KEY_DISTANCE_TO_FOCUS,
+                                            it.distance.toString()
+                                        )
+                                    }
+                                },
+                            )
+                        } else {
+                            SearchResult.SearchSuggestion(
+                                query = query,
+                                providerId = providerId,
+                                extras = buildMap {
+                                    put(EXTRAS_KEY_RANK, suggestion.rank.toString())
+                                    suggestion.distanceToFocus?.let {
+                                        put(
+                                            EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString()
+                                        )
+                                    }
+                                    put(EXTRAS_KEY_TITLE, suggestion.w3wAddress.words)
+                                    suggestion.w3wAddress.nearestPlace
+                                        .takeIf { it.isNotEmpty() }
+                                        ?.let { put(EXTRAS_KEY_SUBTITLE, it) }
+                                },
+                            )
+                        }
                     },
                 )
 
@@ -44,4 +76,23 @@ internal class ThreeWordAddressSearchProvider(
             }
         }
 
+    override suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> =
+        withContext(
+            Dispatchers.IO
+        ) {
+            val w3WAddress = data.extras[EXTRAS_KEY_TITLE] ?: return@withContext W3WResult.Failure(
+                MissingSuggestionTitleException()
+            )
+            when (val result = textDataSource.convertToCoordinates(w3WAddress)) {
+                is W3WResult.Success -> W3WResult.Success(
+                    SearchResult.ResolvedAddress(
+                        query = w3WAddress,
+                        providerId = providerId,
+                        address = result.value
+                    )
+                )
+
+                is W3WResult.Failure -> W3WResult.Failure(result.error)
+            }
+        }
 }

@@ -1,11 +1,13 @@
 package com.what3words.search.wrapper.maybethreewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
-import com.what3words.core.types.common.W3WError
 import com.what3words.core.types.common.W3WResult
+import com.what3words.search.wrapper.error.InvalidQueryException
 import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SearchResult
-import com.what3words.search.wrapper.core.SearchResult.SearchSuggestion.Companion.EXTRAS_KEY_SUGGESTED_ADDRESS
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_RANK
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUGGESTED_ADDRESS
 import com.what3words.search.wrapper.maybethreewordaddress.helper.lettersOnly
 import com.what3words.search.wrapper.maybethreewordaddress.helper.mayBeA3WordAddress
 import com.what3words.search.wrapper.threewordaddress.ThreeWordAddressSearchConfig
@@ -37,19 +39,31 @@ internal class MayBeAThreeWordAddressSearchProvider(
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
             val maybe3wa = query.mayBeA3WordAddress()
-                ?: return@withContext W3WResult.Failure(W3WError("Query is not a valid three-word-address-like input"))
+                ?: return@withContext W3WResult.Failure(InvalidQueryException())
 
             when (val result = textDataSource.autosuggest(maybe3wa, autosuggestOptions)) {
                 is W3WResult.Success -> W3WResult.Success(
+                    // If the query is like "///index home raft"
                     if (query.startsWith(THREE_WORD_ADDRESS_PREFIX)) {
                         result.value.map { suggestion ->
                             SearchResult.ResolvedAddress(
                                 query = query,
                                 providerId = providerId,
                                 address = suggestion.w3wAddress,
+                                extras = buildMap {
+                                    put(EXTRAS_KEY_RANK, suggestion.rank.toString())
+                                    suggestion.distanceToFocus?.let {
+                                        put(
+                                            EXTRAS_KEY_DISTANCE_TO_FOCUS,
+                                            it.distance.toString()
+                                        )
+                                    }
+                                },
                             )
                         }
-                    } else {
+                    }
+                    // If the query is like "index home raft"
+                    else {
                         val firstSuggestion =
                             result.value.firstOrNull() ?: return@withContext W3WResult.Success(emptyList())
                         val suggestedThreeWordAddress = "$THREE_WORD_ADDRESS_PREFIX${firstSuggestion.w3wAddress.words}"
