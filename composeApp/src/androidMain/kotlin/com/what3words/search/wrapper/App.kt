@@ -1,21 +1,18 @@
 package com.what3words.search.wrapper
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -30,10 +27,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,9 +38,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.what3words.core.types.domain.W3WAddress
 import com.what3words.core.types.domain.W3WCountry
 import com.what3words.core.types.language.W3WProprietaryLanguage
+import com.what3words.design.library.ui.components.What3wordsAddressListItem
+import com.what3words.design.library.ui.models.DisplayUnits
 import com.what3words.search.wrapper.core.SearchResult
-import com.what3words.search.wrapper.core.SearchResult.SearchSuggestion.Companion.EXTRAS_KEY_SUBTITLE
-import com.what3words.search.wrapper.core.SearchResult.SearchSuggestion.Companion.EXTRAS_KEY_TITLE
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,9 +126,16 @@ fun App(viewModel: SearchViewModel) {
 
                 // ── Resolved address card ─────────────────────────────────────
                 uiState.resolvedAddress?.let { resolved ->
-                    ResolvedAddressCard(
-                        resolvedAddress = resolved,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    What3wordsAddressListItem(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        words = resolved.address.words,
+                        nearestPlace = resolved.address.nearestPlace,
+                        isLand = true,
+                        distance = resolved.extras[EXTRAS_KEY_DISTANCE_TO_FOCUS]?.toIntOrNull(),
+                        displayUnits = DisplayUnits.METRIC,
+                        isHighlighted = false,
                     )
                 }
 
@@ -144,22 +151,29 @@ fun App(viewModel: SearchViewModel) {
                     }
                 } else {
                     LazyColumn {
-                        uiState.suggestions.groupBy { it.providerId }.map { (providerId, suggestions) ->
-                            stickyHeader {
-                                Text(
-                                    providerId,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-                                )
+                        uiState.suggestions.groupBy { it.providerId }
+                            .map { (providerId, suggestions) ->
+                                stickyHeader {
+                                    Text(
+                                        providerId,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                    )
+                                }
+                                items(suggestions, key = { it.hashCode() }) { suggestion ->
+                                    SearchResultItem(
+                                        suggestion = suggestion,
+                                        onClick = {
+                                            viewModel.handleAction(
+                                                SearchAction.SuggestionSelected(
+                                                    it
+                                                )
+                                            )
+                                        },
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
+                                }
                             }
-                            items(suggestions, key = { it.hashCode() }) { suggestion ->
-                                SuggestionItem(
-                                    suggestion = suggestion,
-                                    onClick = { viewModel.handleAction(SearchAction.SuggestionSelected(it)) },
-                                )
-                                HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                            }
-                        }
                     }
 
                 }
@@ -170,10 +184,10 @@ fun App(viewModel: SearchViewModel) {
                     Text(
                         text = suggestion,
                         modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
                             .clickable {
                                 viewModel.handleAction(SearchAction.QueryChanged(suggestion))
-                            },
+                            }
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
@@ -191,109 +205,58 @@ fun App(viewModel: SearchViewModel) {
 // ── Sub-composables ───────────────────────────────────────────────────────────
 
 @Composable
-private fun SuggestionItem(
+private fun SearchResultItem(
     suggestion: SearchResult,
     onClick: (SearchResult) -> Unit,
 ) {
-    val (title, subtitle) = when (suggestion) {
-        is SearchResult.SearchSuggestion -> Pair(
-            suggestion.extras[EXTRAS_KEY_TITLE].orEmpty(),
-            suggestion.extras[EXTRAS_KEY_SUBTITLE].orEmpty()
-        )
-        is SearchResult.ResolvedAddress -> Pair(suggestion.address.words, suggestion.address.nearestPlace)
+    val title = suggestion.extras[EXTRAS_KEY_TITLE].orEmpty()
+    val subtitle = suggestion.extras[EXTRAS_KEY_SUBTITLE].orEmpty()
+    val distanceToFocus = suggestion.extras[EXTRAS_KEY_DISTANCE_TO_FOCUS].orEmpty()
+
+    LaunchedEffect(distanceToFocus) {
+        Log.d("DUY1", "distanceToFocus: $distanceToFocus")
     }
 
-    ListItem(
-        headlineContent = { Text(title) },
-        supportingContent = if (subtitle.isNotEmpty()) {
-            { Text(subtitle, style = MaterialTheme.typography.bodySmall) }
-        } else null,
-        leadingContent = {
-            Text(
-                text = "📍",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        },
-        modifier = Modifier.clickable { onClick(suggestion) },
-    )
-}
-
-@Composable
-private fun ResolvedAddressCard(
-    resolvedAddress: SearchResult.ResolvedAddress,
-    modifier: Modifier = Modifier,
-) {
-    val address = resolvedAddress.address
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // what3words address
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "///",
-                    color = Color(0xFFE11F26),
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = address.words,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-
-            // Nearest place
-            val nearestPlace = address.nearestPlace
-            if (nearestPlace.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = nearestPlace,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            // Coordinates
-            val center = address.center
-            if (center != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CoordinateChip(label = "Lat", value = "%.6f".format(center.lat))
-                    CoordinateChip(label = "Lng", value = "%.6f".format(center.lng))
+    when (suggestion) {
+        is SearchResult.SearchSuggestion -> ListItem(
+            headlineContent = { Text(title) },
+            supportingContent = {
+                Column {
+                    Text(subtitle, style = MaterialTheme.typography.bodySmall)
+                    if (distanceToFocus.isNotEmpty()) Text(
+                        "$distanceToFocus km",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
-            }
-        }
-    }
-}
+            },
+            leadingContent = {
+                Text(
+                    text = "📍",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            },
+            modifier = Modifier.clickable { onClick(suggestion) },
+        )
 
-@Composable
-private fun CoordinateChip(label: String, value: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = "$label ",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.width(2.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Medium,
+        is SearchResult.ResolvedAddress -> What3wordsAddressListItem(
+            words = suggestion.address.words,
+            nearestPlace = suggestion.address.nearestPlace,
+            isLand = true,
+            distance = distanceToFocus.toIntOrNull(),
+            displayUnits = DisplayUnits.METRIC,
+            isHighlighted = false,
+            showDivider = false
         )
     }
+
 }
 
 @Preview
 @Composable
-private fun PreviewSuggestionItem() {
+private fun PreviewSearchResultItem() {
     MaterialTheme {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            SuggestionItem(
+            SearchResultItem(
                 suggestion = SearchResult.SearchSuggestion(
                     query = "Sonatus",
                     providerId = "google_places",
@@ -302,7 +265,7 @@ private fun PreviewSuggestionItem() {
                 onClick = {},
             )
 
-            SuggestionItem(
+            SearchResultItem(
                 suggestion = SearchResult.ResolvedAddress(
                     "filled.count.soap",
                     "w3w",

@@ -96,6 +96,8 @@ android {
 }
 
 dependencies {
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.material.icons)
     implementation(libs.compose.uiToolingPreview)
     implementation(libs.androidx.activity.compose)
     implementation(libs.compose.runtime)
@@ -110,6 +112,7 @@ dependencies {
     implementation(libs.w3w.android.wrapper) {
         exclude(group = "com.what3words", module = "w3w-core-android")
     }
+    implementation(libs.what3words.design)
 
     testImplementation(libs.kotlin.test)
     debugImplementation(libs.compose.uiTooling)
