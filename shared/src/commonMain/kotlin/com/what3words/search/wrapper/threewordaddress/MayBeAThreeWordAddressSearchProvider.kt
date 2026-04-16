@@ -2,12 +2,12 @@ package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
-import com.what3words.search.wrapper.error.InvalidQueryException
 import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_RANK
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUGGESTED_ADDRESS
+import com.what3words.search.wrapper.error.InvalidQueryException
 import com.what3words.search.wrapper.threewordaddress.helper.lettersOnly
 import com.what3words.search.wrapper.threewordaddress.helper.mayBeA3WordAddress
 import kotlinx.coroutines.Dispatchers
@@ -63,14 +63,25 @@ internal class MayBeAThreeWordAddressSearchProvider(
                     // If the query is like "index home raft"
                     else {
                         val firstSuggestion =
-                            result.value.firstOrNull() ?: return@withContext W3WResult.Success(emptyList())
-                        val suggestedThreeWordAddress = "$THREE_WORD_ADDRESS_PREFIX${firstSuggestion.w3wAddress.words}"
+                            result.value.firstOrNull() ?: return@withContext W3WResult.Success(
+                                emptyList()
+                            )
+                        val suggestedThreeWordAddress =
+                            "$THREE_WORD_ADDRESS_PREFIX${firstSuggestion.w3wAddress.words}"
                         if (suggestedThreeWordAddress.lettersOnly() == query.lettersOnly()) {
                             listOf(
                                 SearchResult.SearchSuggestion(
                                     query = query,
                                     providerId = providerId,
-                                    extras = mapOf(EXTRAS_KEY_SUGGESTED_ADDRESS to suggestedThreeWordAddress),
+                                    extras = buildMap {
+                                        put(EXTRAS_KEY_SUGGESTED_ADDRESS, suggestedThreeWordAddress)
+                                        firstSuggestion.distanceToFocus?.let {
+                                            put(
+                                                EXTRAS_KEY_DISTANCE_TO_FOCUS,
+                                                it.distance.toString()
+                                            )
+                                        }
+                                    }
                                 )
                             )
                         } else {
@@ -78,6 +89,7 @@ internal class MayBeAThreeWordAddressSearchProvider(
                         }
                     }
                 )
+
                 is W3WResult.Failure -> W3WResult.Failure(result.error)
             }
         }

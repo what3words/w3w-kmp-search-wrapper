@@ -1,6 +1,5 @@
 package com.what3words.search.wrapper
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,7 +26,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -212,10 +210,6 @@ private fun SearchResultItem(
     val title = suggestion.extras[EXTRAS_KEY_TITLE].orEmpty()
     val subtitle = suggestion.extras[EXTRAS_KEY_SUBTITLE].orEmpty()
     val distanceToFocus = suggestion.extras[EXTRAS_KEY_DISTANCE_TO_FOCUS].orEmpty()
-
-    LaunchedEffect(distanceToFocus) {
-        Log.d("DUY1", "distanceToFocus: $distanceToFocus")
-    }
 
     when (suggestion) {
         is SearchResult.SearchSuggestion -> ListItem(
