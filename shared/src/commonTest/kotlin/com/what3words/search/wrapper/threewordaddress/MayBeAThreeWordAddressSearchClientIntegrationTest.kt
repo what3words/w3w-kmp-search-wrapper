@@ -13,7 +13,7 @@ import com.what3words.search.wrapper.error.ProviderNotFoundException
 import com.what3words.search.wrapper.fixtures.fakeAddress
 import com.what3words.search.wrapper.fixtures.pluginFor
 import com.what3words.search.wrapper.fixtures.suggestion
-import com.what3words.search.wrapper.threewordaddress.ThreeWordAddressSearchConfig
+import com.what3words.search.wrapper.threewordaddress.MayBeAThreeWordAddressSearchConfig
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -53,15 +53,15 @@ class MayBeAThreeWordAddressSearchClientIntegrationTest {
     }
 
     @Test
-    fun search_withPrefixThreeWordAddress_returnsResolvedAddressFromMayBeProvider() = runTest {
+    fun search_withPrefixThreeWordAddress_returnsSuggestionFromMayBeProvider() = runTest {
         val client = buildClient()
 
         val result = client.search("///filled.count.soap")
 
         assertIs<W3WResult.Success<List<SearchResult>>>(result)
         assertEquals(1, result.value.size)
-        val address = assertIs<SearchResult.ResolvedAddress>(result.value.first())
-        assertEquals(MAY_BE_THREE_WORD_ADDRESS_PROVIDER_ID, address.providerId)
+        val suggestion = assertIs<SearchResult.SearchSuggestion>(result.value.first())
+        assertEquals(MAY_BE_THREE_WORD_ADDRESS_PROVIDER_ID, suggestion.providerId)
     }
 
     @Test
@@ -102,7 +102,7 @@ class MayBeAThreeWordAddressSearchClientIntegrationTest {
     fun search_withHigherPriorityProvider_handlesMayBeAddressFirst() = runTest {
         val mayBeProvider = MayBeAThreeWordAddressSearchProvider(
             defaultDataSource,
-            ThreeWordAddressSearchConfig(),
+            MayBeAThreeWordAddressSearchConfig(),
         )
         val fallbackProvider = fakeProvider("fallback", results = listOf(suggestion("fallback")))
 
@@ -131,22 +131,6 @@ class MayBeAThreeWordAddressSearchClientIntegrationTest {
 
         assertIs<W3WResult.Success<List<SearchResult>>>(result)
         assertTrue(result.value.any { it.providerId == MAY_BE_THREE_WORD_ADDRESS_PROVIDER_ID })
-    }
-
-    @Test
-    fun search_withCustomMaxResults_usesConfiguredValue() = runTest {
-        val trackingDataSource = FakeW3WTextDataSource().apply {
-            autosuggestResult = W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
-        }
-        val client = W3WSearchClient(trackingDataSource) {
-            install(MayBeAThreeWordAddressSearch, priority = 10) {
-                maxResults = 7
-            }
-        }
-
-        client.search("filled count soap")
-
-        assertEquals(7, trackingDataSource.lastAutosuggestOptions?.nResults)
     }
 
     @Test

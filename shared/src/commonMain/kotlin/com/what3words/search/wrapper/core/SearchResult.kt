@@ -61,4 +61,26 @@ sealed class SearchResult(
         /** Extras key for the distance (kilometers) from the suggestion to the focus coordinates. */
         const val EXTRAS_KEY_DISTANCE_TO_FOCUS = "distanceToFocus"
     }
+
+    /**
+     * The primary display text of the search result.
+     */
+    val title: String?
+        get() {
+            return when (this) {
+                is ResolvedAddress -> extras[EXTRAS_KEY_TITLE] ?: address.words
+                is SearchSuggestion -> extras[EXTRAS_KEY_TITLE]
+            }
+        }
+
+    /**
+     * The secondary display text of the search result.
+     */
+    val subtitle: String?
+        get() {
+            return when (this) {
+                is ResolvedAddress -> extras[EXTRAS_KEY_SUBTITLE] ?: address.nearestPlace
+                is SearchSuggestion -> extras[EXTRAS_KEY_SUBTITLE]
+            }
+        }
 }

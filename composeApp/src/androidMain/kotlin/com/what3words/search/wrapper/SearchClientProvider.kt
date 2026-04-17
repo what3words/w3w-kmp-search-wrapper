@@ -2,7 +2,6 @@ package com.what3words.search.wrapper
 
 import android.content.Context
 import com.what3words.core.datasource.text.W3WTextDataSource
-import com.what3words.core.types.domain.W3WCountry
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.search.wrapper.bng.BritishNationalGridSearch
 import com.what3words.search.wrapper.coordinates.CoordinatesSearch
@@ -27,11 +26,13 @@ class SearchClientProvider(
             install(BritishNationalGridSearch, priority = 10)
             install(CoordinatesSearch, priority = 9)
             install(ThreeWordAddressSearch, priority = 8) {
+                includeCoordinates = true
                 focus = W3WCoordinates(10.780549, 106.705245)
-                maxResults = 5
+                maxResults = 3
+                allowSpaceSeparator = true
             }
             install(MayBeAThreeWordAddressSearch, priority = 1) {
-                maxResults = 5
+                includeCoordinates = true
                 focus = W3WCoordinates(10.780549, 106.705245)
             }
             block()
