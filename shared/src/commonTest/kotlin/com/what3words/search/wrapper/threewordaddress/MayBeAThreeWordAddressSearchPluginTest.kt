@@ -1,4 +1,4 @@
-package com.what3words.search.wrapper.maybethreewordaddress
+package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.search.wrapper.fake.FakeW3WTextDataSource
 import com.what3words.search.wrapper.threewordaddress.ThreeWordAddressSearchConfig
