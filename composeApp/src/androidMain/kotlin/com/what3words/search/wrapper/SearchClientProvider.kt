@@ -2,6 +2,7 @@ package com.what3words.search.wrapper
 
 import android.content.Context
 import com.what3words.core.datasource.text.W3WTextDataSource
+import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.search.wrapper.bng.BritishNationalGridSearch
 import com.what3words.search.wrapper.coordinates.CoordinatesSearch
 import com.what3words.search.wrapper.core.W3WSearchClient
@@ -9,7 +10,7 @@ import com.what3words.search.wrapper.googleplaces.GooglePlacesConfig
 import com.what3words.search.wrapper.googleplaces.GooglePlacesSearch
 import com.what3words.search.wrapper.mapbox.MapboxConfig
 import com.what3words.search.wrapper.mapbox.MapboxSearch
-import com.what3words.search.wrapper.maybethreewordaddress.MayBeAThreeWordAddressSearch
+import com.what3words.search.wrapper.threewordaddress.MayBeAThreeWordAddressSearch
 import com.what3words.search.wrapper.threewordaddress.ThreeWordAddressSearch
 
 /** The map provider used to back the external place search. */
@@ -24,8 +25,16 @@ class SearchClientProvider(
         W3WSearchClient(textDataSource) {
             install(BritishNationalGridSearch, priority = 10)
             install(CoordinatesSearch, priority = 9)
-            install(ThreeWordAddressSearch, priority = 8)
-            install(MayBeAThreeWordAddressSearch, priority = 1)
+            install(ThreeWordAddressSearch, priority = 8) {
+                includeCoordinates = true
+                focus = W3WCoordinates(10.780549, 106.705245)
+                maxResults = 3
+                allowSpaceSeparator = true
+            }
+            install(MayBeAThreeWordAddressSearch, priority = 1) {
+                includeCoordinates = true
+                focus = W3WCoordinates(10.780549, 106.705245)
+            }
             block()
         }
 

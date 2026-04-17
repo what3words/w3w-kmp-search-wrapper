@@ -6,6 +6,8 @@ import com.what3words.core.types.common.W3WResult
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -95,8 +97,8 @@ internal class MapboxSearchProvider internal constructor(
                         extras = buildMap {
                             put(EXTRAS_KEY_LAT, lat.toString())
                             put(EXTRAS_KEY_LNG, lng.toString())
-                            put(SearchResult.SearchSuggestion.EXTRAS_KEY_TITLE, feature.text)
-                            subtitle?.let { put(SearchResult.SearchSuggestion.EXTRAS_KEY_SUBTITLE, it) }
+                            put(EXTRAS_KEY_TITLE, feature.text)
+                            subtitle?.let { put(EXTRAS_KEY_SUBTITLE, it) }
                         }
                     )
                 }
