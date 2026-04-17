@@ -2,14 +2,15 @@ package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
-import com.what3words.search.wrapper.error.MissingSuggestionTitleException
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_RANK
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
+import com.what3words.search.wrapper.error.MissingSuggestionTitleException
 import com.what3words.search.wrapper.threewordaddress.helper.isA3WordAddress
+import com.what3words.search.wrapper.threewordaddress.helper.normalizeToCanonicalForm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -27,18 +28,20 @@ internal class ThreeWordAddressSearchProvider(
 
     override val providerId: String = THREE_WORD_ADDRESS_PROVIDER_ID
 
-    override fun canHandle(query: String): Boolean = query.isA3WordAddress()
-
+    private val allowSpaceSeparator = config.allowSpaceSeparator
     private val autosuggestOptions = config.toAutosuggestOptions()
+
+    override fun canHandle(query: String): Boolean = query.isA3WordAddress(allowSpaceSeparator)
 
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
-            when (val result = textDataSource.autosuggest(query, autosuggestOptions)) {
+            val canonicalQuery = query.normalizeToCanonicalForm()
+            when (val result = textDataSource.autosuggest(canonicalQuery, autosuggestOptions)) {
                 is W3WResult.Success -> W3WResult.Success(
                     result.value.map { suggestion ->
                         if (suggestion.w3wAddress.center != null) {
                             SearchResult.ResolvedAddress(
-                                query = query,
+                                query = canonicalQuery,
                                 providerId = providerId,
                                 address = suggestion.w3wAddress,
                                 extras = buildMap {
@@ -53,7 +56,7 @@ internal class ThreeWordAddressSearchProvider(
                             )
                         } else {
                             SearchResult.SearchSuggestion(
-                                query = query,
+                                query = canonicalQuery,
                                 providerId = providerId,
                                 extras = buildMap {
                                     put(EXTRAS_KEY_RANK, suggestion.rank.toString())

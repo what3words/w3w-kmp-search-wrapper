@@ -157,7 +157,9 @@ class ThreeWordAddressSearchProviderTest {
             autosuggestResult = W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
             convertToCoordinatesResult = W3WResult.Success(fakeAddress())
         }
-        val config = defaultConfig.copy(maxResults = 10)
+        val config = ThreeWordAddressSearchConfig().apply {
+            maxResults = 10
+        }
         val p = ThreeWordAddressSearchProvider(trackingDataSource, config)
 
         p.executeSearch("filled.count.soap")
@@ -172,7 +174,9 @@ class ThreeWordAddressSearchProviderTest {
             autosuggestResult = W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
             convertToCoordinatesResult = W3WResult.Success(fakeAddress())
         }
-        val config = defaultConfig.copy(fallbackLanguage = W3WRFC5646Language.FR_FR)
+        val config = ThreeWordAddressSearchConfig().apply {
+            fallbackLanguage = W3WRFC5646Language.FR_FR
+        }
         val p = ThreeWordAddressSearchProvider(trackingDataSource, config)
 
         p.executeSearch("filled.count.soap")
@@ -187,7 +191,9 @@ class ThreeWordAddressSearchProviderTest {
             autosuggestResult = W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
             convertToCoordinatesResult = W3WResult.Success(fakeAddress())
         }
-        val config = defaultConfig.copy(clippedCountries = listOf(W3WCountry("GB"), W3WCountry("US")))
+        val config = ThreeWordAddressSearchConfig().apply {
+            clippedCountries = listOf(W3WCountry("GB"), W3WCountry("US"))
+        }
         val p = ThreeWordAddressSearchProvider(trackingDataSource, config)
 
         p.executeSearch("filled.count.soap")
@@ -203,7 +209,9 @@ class ThreeWordAddressSearchProviderTest {
             autosuggestResult = W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
             convertToCoordinatesResult = W3WResult.Success(fakeAddress())
         }
-        val config = defaultConfig.copy(preferLand = true)
+        val config = ThreeWordAddressSearchConfig().apply {
+            preferLand = true
+        }
         val p = ThreeWordAddressSearchProvider(trackingDataSource, config)
 
         p.executeSearch("filled.count.soap")
