@@ -26,6 +26,10 @@ const val MAPBOX_PROVIDER_ID = "MapboxSearchProvider"
 private const val BASE_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places"
 private const val PARAM_ACCESS_TOKEN = "access_token"
 private const val PARAM_LIMIT = "limit"
+private const val PARAM_AUTOCOMPLETE = "autocomplete"
+private const val PARAM_FUZZY_MATCH = "fuzzyMatch"
+private const val PARAM_COUNTRY = "country"
+private const val PARAM_PROXIMITY = "proximity"
 private const val EXTRAS_KEY_LAT = "lat"
 private const val EXTRAS_KEY_LNG = "lng"
 
@@ -70,43 +74,52 @@ internal class MapboxSearchProvider internal constructor(
      * Coordinates (`lat` / `lng`) are stored in [SearchResult.SearchSuggestion.extras] so that
      * [resolve] can convert them to a what3words address without an extra network round-trip.
      */
-    override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> = withContext(Dispatchers.IO) {
-        try {
-            val encodedQuery = query.encodeURLPathPart()
-            val response = httpClient.get("$BASE_URL/$encodedQuery.json") {
-                parameter(PARAM_ACCESS_TOKEN, config.apiKey)
-                parameter(PARAM_LIMIT, config.maxResults)
-            }
-
-            if (!response.status.isSuccess()) {
-                return@withContext W3WResult.Failure(response.toMapboxApiError())
-            }
-
-            val results = response.body<MapboxFeatureCollection>().features
-                .mapNotNull { feature ->
-                    val lng = feature.center.getOrNull(0) ?: return@mapNotNull null
-                    val lat = feature.center.getOrNull(1) ?: return@mapNotNull null
-
-                    val subtitle = feature.placeName
-                        .removePrefix("${feature.text}, ")
-                        .takeIf { it != feature.placeName }
-
-                    SearchResult.SearchSuggestion(
-                        query = query,
-                        providerId = providerId,
-                        extras = buildMap {
-                            put(EXTRAS_KEY_LAT, lat.toString())
-                            put(EXTRAS_KEY_LNG, lng.toString())
-                            put(EXTRAS_KEY_TITLE, feature.text)
-                            subtitle?.let { put(EXTRAS_KEY_SUBTITLE, it) }
-                        }
-                    )
+    override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val encodedQuery = query.encodeURLPathPart()
+                val response = httpClient.get("$BASE_URL/$encodedQuery.json") {
+                    parameter(PARAM_LIMIT, config.maxResults)
+                    parameter(PARAM_AUTOCOMPLETE, config.autoComplete)
+                    parameter(PARAM_FUZZY_MATCH, config.fuzzyMatch)
+                    parameter(PARAM_ACCESS_TOKEN, config.apiKey)
+                    if (config.includedRegionCodes.isNotEmpty()) {
+                        parameter(PARAM_COUNTRY, config.includedRegionCodes.joinToString(","))
+                    }
+                    config.focus?.let {
+                        parameter(PARAM_PROXIMITY, "${it.lng},${it.lat}")
+                    }
                 }
-            W3WResult.Success(results)
-        } catch (e: Exception) {
-            W3WResult.Failure(W3WError(e))
+
+                if (!response.status.isSuccess()) {
+                    return@withContext W3WResult.Failure(response.toMapboxApiError())
+                }
+
+                val results = response.body<MapboxFeatureCollection>().features
+                    .mapNotNull { feature ->
+                        val lng = feature.center.getOrNull(0) ?: return@mapNotNull null
+                        val lat = feature.center.getOrNull(1) ?: return@mapNotNull null
+
+                        val subtitle = feature.placeName
+                            .removePrefix("${feature.text}, ")
+                            .takeIf { it != feature.placeName }
+
+                        SearchResult.SearchSuggestion(
+                            query = query,
+                            providerId = providerId,
+                            extras = buildMap {
+                                put(EXTRAS_KEY_LAT, lat.toString())
+                                put(EXTRAS_KEY_LNG, lng.toString())
+                                put(EXTRAS_KEY_TITLE, feature.text)
+                                subtitle?.let { put(EXTRAS_KEY_SUBTITLE, it) }
+                            }
+                        )
+                    }
+                W3WResult.Success(results)
+            } catch (e: Exception) {
+                W3WResult.Failure(W3WError(e))
+            }
         }
-    }
 
     /**
      * @param data Suggestion produced by [executeSearch].
@@ -132,6 +145,7 @@ internal class MapboxSearchProvider internal constructor(
                             address = w3wResult.value,
                         )
                     )
+
                     is W3WResult.Failure -> W3WResult.Failure(w3wResult.error, w3wResult.message)
                 }
             } catch (e: Exception) {

@@ -8,6 +8,7 @@ import com.what3words.search.wrapper.coordinates.CoordinatesSearch
 import com.what3words.search.wrapper.core.W3WSearchClient
 import com.what3words.search.wrapper.googleplaces.GooglePlacesConfig
 import com.what3words.search.wrapper.googleplaces.GooglePlacesSearch
+import com.what3words.search.wrapper.googleplaces.LocationBias
 import com.what3words.search.wrapper.mapbox.MapboxConfig
 import com.what3words.search.wrapper.mapbox.MapboxSearch
 import com.what3words.search.wrapper.threewordaddress.MayBeAThreeWordAddressSearch
@@ -29,7 +30,6 @@ class SearchClientProvider(
                 includeCoordinates = true
                 focus = W3WCoordinates(10.780549, 106.705245)
                 maxResults = 3
-                allowSpaceSeparator = true
             }
             install(MayBeAThreeWordAddressSearch, priority = 1) {
                 includeCoordinates = true
@@ -42,7 +42,15 @@ class SearchClientProvider(
         buildClient {
             install(
                 plugin = GooglePlacesSearch,
-                config = GooglePlacesConfig(context = context, apiKey = BuildConfig.PLACES_API),
+                config = GooglePlacesConfig(
+                    context = context,
+                    apiKey = BuildConfig.PLACES_API,
+                    origin = W3WCoordinates(10.780549, 106.705245),
+                    locationBias = LocationBias.Circle(
+                        center = W3WCoordinates(10.780549, 106.705245),
+                        radiusMeters = 2000.0
+                    )
+                ),
                 priority = 1,
             )
         }
@@ -52,7 +60,10 @@ class SearchClientProvider(
         buildClient {
             install(
                 plugin = MapboxSearch,
-                config = MapboxConfig(apiKey = BuildConfig.MAPBOX_API),
+                config = MapboxConfig(
+                    apiKey = BuildConfig.MAPBOX_API,
+                    focus = W3WCoordinates(10.780549, 106.705245)
+                ),
                 priority = 1,
             )
         }
