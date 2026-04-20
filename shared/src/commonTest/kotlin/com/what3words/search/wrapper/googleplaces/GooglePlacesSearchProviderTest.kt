@@ -347,6 +347,125 @@ class GooglePlacesSearchProviderTest {
         )
     }
 
+    // region locationBias
+
+    @Test
+    fun executeSearch_includesCircleBiasInRequestBody() = runTest {
+        var capturedBody = ""
+        val p = provider(
+            config = defaultConfig.copy(
+                locationBias = LocationBias.Circle(
+                    center = W3WCoordinates(51.5, -0.1),
+                    radiusMeters = 500.0,
+                )
+            ),
+            httpClient = mockClient(onRequest = { capturedBody = readBodyText(it) }),
+        )
+
+        p.executeSearch("main")
+
+        assertTrue("locationBias" in capturedBody, "Expected locationBias in body: $capturedBody")
+        assertTrue("circle" in capturedBody, "Expected circle in body: $capturedBody")
+        assertTrue("500" in capturedBody, "Expected radius in body: $capturedBody")
+    }
+
+    @Test
+    fun executeSearch_includesRectangleBiasInRequestBody() = runTest {
+        var capturedBody = ""
+        val p = provider(
+            config = defaultConfig.copy(
+                locationBias = LocationBias.Rectangle(
+                    low = W3WCoordinates(51.4, -0.2),
+                    high = W3WCoordinates(51.6, 0.0),
+                )
+            ),
+            httpClient = mockClient(onRequest = { capturedBody = readBodyText(it) }),
+        )
+
+        p.executeSearch("main")
+
+        assertTrue("locationBias" in capturedBody, "Expected locationBias in body: $capturedBody")
+        assertTrue("rectangle" in capturedBody, "Expected rectangle in body: $capturedBody")
+        assertTrue("51.4" in capturedBody, "Expected low lat in body: $capturedBody")
+        assertTrue("51.6" in capturedBody, "Expected high lat in body: $capturedBody")
+    }
+
+    @Test
+    fun executeSearch_omitsLocationBiasWhenNotConfigured() = runTest {
+        var capturedBody = ""
+        val p = provider(
+            httpClient = mockClient(onRequest = { capturedBody = readBodyText(it) }),
+        )
+
+        p.executeSearch("main")
+
+        assertFalse("locationBias" in capturedBody, "Expected no locationBias in body: $capturedBody")
+    }
+
+    // endregion
+
+    // region origin
+
+    @Test
+    fun executeSearch_includesOriginInRequestBody() = runTest {
+        var capturedBody = ""
+        val p = provider(
+            config = defaultConfig.copy(origin = W3WCoordinates(51.5, -0.1)),
+            httpClient = mockClient(onRequest = { capturedBody = readBodyText(it) }),
+        )
+
+        p.executeSearch("main")
+
+        assertTrue("origin" in capturedBody, "Expected origin in body: $capturedBody")
+        assertTrue("51.5" in capturedBody, "Expected lat in body: $capturedBody")
+    }
+
+    @Test
+    fun executeSearch_omitsOriginWhenNotConfigured() = runTest {
+        var capturedBody = ""
+        val p = provider(
+            httpClient = mockClient(onRequest = { capturedBody = readBodyText(it) }),
+        )
+
+        p.executeSearch("main")
+
+        assertFalse("origin" in capturedBody, "Expected no origin in body: $capturedBody")
+    }
+
+    // endregion
+
+    // region includedRegionCodes
+
+    @Test
+    fun executeSearch_includesRegionCodesInRequestBody() = runTest {
+        var capturedBody = ""
+        val p = provider(
+            config = defaultConfig.copy(includedRegionCodes = listOf("GB", "US")),
+            httpClient = mockClient(onRequest = { capturedBody = readBodyText(it) }),
+        )
+
+        p.executeSearch("main")
+
+        assertTrue("includedRegionCodes" in capturedBody, "Expected includedRegionCodes in body: $capturedBody")
+        assertTrue("GB" in capturedBody, "Expected GB in body: $capturedBody")
+        assertTrue("US" in capturedBody, "Expected US in body: $capturedBody")
+    }
+
+    @Test
+    fun executeSearch_omitsRegionCodesWhenListIsEmpty() = runTest {
+        var capturedBody = ""
+        val p = provider(
+            config = defaultConfig.copy(includedRegionCodes = emptyList()),
+            httpClient = mockClient(onRequest = { capturedBody = readBodyText(it) }),
+        )
+
+        p.executeSearch("main")
+
+        assertFalse("includedRegionCodes" in capturedBody, "Expected no includedRegionCodes in body: $capturedBody")
+    }
+
+    // endregion
+
     @Test
     fun resolve_returnsFailureWhenPlaceIdMissingFromExtras() = runTest {
         val suggestion = SearchResult.SearchSuggestion(

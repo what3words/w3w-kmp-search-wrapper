@@ -1,5 +1,6 @@
 package com.what3words.search.wrapper.googleplaces.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 
@@ -18,6 +19,8 @@ internal data class PlacePrediction(
     val placeId: String = "",
     val text: LocalizedText? = null,
     val structuredFormat: StructuredFormat? = null,
+    @SerialName("distanceMeters")
+    val distanceToOrigin: Double? = null,
 )
 
 @Serializable

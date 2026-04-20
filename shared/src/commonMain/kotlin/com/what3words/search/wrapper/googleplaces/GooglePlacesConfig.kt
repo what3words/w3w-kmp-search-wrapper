@@ -1,5 +1,6 @@
 package com.what3words.search.wrapper.googleplaces
 
+import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.core.types.language.W3WRFC5646Language
 
 /**
@@ -12,6 +13,11 @@ import com.what3words.core.types.language.W3WRFC5646Language
  * @property minQueryLength Minimum characters before a search is dispatched. Defaults to `3`.
  * @property maxResults Maximum autocomplete suggestions returned per search. Defaults to `5`.
  * @property headers Additional HTTP headers sent with every request.
+ * @property locationBias Biases autocomplete results toward a circular or rectangular region. Null means no bias.
+ * @property origin Origin point used to calculate straight-line distance to each suggestion. Null means no origin.
+ *   In certain cases, distanceMeters is missing from the response body, even when origin is included in the request.
+ *   See more: [Distance missing from response](https://developers.google.com/maps/documentation/places/web-service/place-autocomplete#distance-missing-from-response)
+ * @property includedRegionCodes CLDR two-character region codes to restrict results (e.g. `["US", "GB"]`). Empty means no restriction.
  */
 expect class GooglePlacesConfig(
     apiKey: String,
@@ -19,6 +25,9 @@ expect class GooglePlacesConfig(
     useSessionTokens: Boolean = true,
     minQueryLength: Int = 3,
     maxResults: Int = 5,
+    locationBias: LocationBias? = null,
+    origin: W3WCoordinates? = null,
+    includedRegionCodes: List<String> = emptyList(),
     headers: Map<String, String?> = emptyMap(),
 ) {
     val apiKey: String
@@ -27,6 +36,9 @@ expect class GooglePlacesConfig(
     val minQueryLength: Int
     val maxResults: Int
     val headers: Map<String, String?>
+    val locationBias: LocationBias?
+    val origin: W3WCoordinates?
+    val includedRegionCodes: List<String>
 
     fun copy(
         apiKey: String = this.apiKey,
@@ -35,5 +47,8 @@ expect class GooglePlacesConfig(
         minQueryLength: Int = this.minQueryLength,
         maxResults: Int = this.maxResults,
         headers: Map<String, String?> = this.headers,
+        locationBias: LocationBias? = this.locationBias,
+        origin: W3WCoordinates? = this.origin,
+        includedRegionCodes: List<String> = this.includedRegionCodes,
     ): GooglePlacesConfig
 }
