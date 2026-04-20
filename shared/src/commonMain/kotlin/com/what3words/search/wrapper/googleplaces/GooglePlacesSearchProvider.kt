@@ -26,7 +26,6 @@ import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -161,8 +160,6 @@ internal class GooglePlacesSearchProvider internal constructor(
                 if (!response.status.isSuccess()) {
                     return@withContext W3WResult.Failure(response.toGooglePlacesApiError())
                 }
-
-                println(response.bodyAsText())
 
                 val results = response.body<AutocompleteResponse>().suggestions
                     .take(config.maxResults)
