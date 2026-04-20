@@ -30,7 +30,6 @@ class SearchClientProvider(
                 includeCoordinates = true
                 focus = W3WCoordinates(10.780549, 106.705245)
                 maxResults = 3
-                allowSpaceSeparator = true
             }
             install(MayBeAThreeWordAddressSearch, priority = 1) {
                 includeCoordinates = true
@@ -61,7 +60,10 @@ class SearchClientProvider(
         buildClient {
             install(
                 plugin = MapboxSearch,
-                config = MapboxConfig(apiKey = BuildConfig.MAPBOX_API),
+                config = MapboxConfig(
+                    apiKey = BuildConfig.MAPBOX_API,
+                    focus = W3WCoordinates(10.780549, 106.705245)
+                ),
                 priority = 1,
             )
         }
