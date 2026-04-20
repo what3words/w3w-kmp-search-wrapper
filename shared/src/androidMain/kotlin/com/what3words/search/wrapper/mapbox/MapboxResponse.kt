@@ -23,6 +23,7 @@ internal data class MapboxFeature(
     val text: String = "",
     @SerialName("place_name")
     val placeName: String = "",
+    val address: String? = null,
     val center: List<Double> = emptyList(),
     val context: List<MapboxContext> = emptyList(),
 )
@@ -31,4 +32,6 @@ internal data class MapboxFeature(
 internal data class MapboxContext(
     val id: String = "",
     val text: String = "",
+    @SerialName("short_code")
+    val shortCode: String? = null,
 )

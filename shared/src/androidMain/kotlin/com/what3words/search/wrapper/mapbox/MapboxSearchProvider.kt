@@ -100,9 +100,13 @@ internal class MapboxSearchProvider internal constructor(
                         val lng = feature.center.getOrNull(0) ?: return@mapNotNull null
                         val lat = feature.center.getOrNull(1) ?: return@mapNotNull null
 
-                        val subtitle = feature.placeName
-                            .removePrefix("${feature.text}, ")
-                            .takeIf { it != feature.placeName }
+                        val title = if (!feature.address.isNullOrBlank()) {
+                            "${feature.address} ${feature.text}"
+                        } else {
+                            feature.text
+                        }
+
+                        val subtitle = feature.buildSubtitle()
 
                         SearchResult.SearchSuggestion(
                             query = query,
@@ -110,7 +114,7 @@ internal class MapboxSearchProvider internal constructor(
                             extras = buildMap {
                                 put(EXTRAS_KEY_LAT, lat.toString())
                                 put(EXTRAS_KEY_LNG, lng.toString())
-                                put(EXTRAS_KEY_TITLE, feature.text)
+                                put(EXTRAS_KEY_TITLE, title)
                                 subtitle?.let { put(EXTRAS_KEY_SUBTITLE, it) }
                             }
                         )
@@ -152,4 +156,25 @@ internal class MapboxSearchProvider internal constructor(
                 W3WResult.Failure(W3WError(e))
             }
         }
+}
+
+/**
+ * Builds a concise subtitle from a feature's [MapboxFeature.context] array,
+ * picking the city (`place.*`) and country short code (`country.*`).
+ *
+ * Example: context entries for "49 Gipsy Hill" include
+ * `place.xxx → "London"` and `country.xxx → shortCode "gb"`,
+ * producing **"London, GB"** instead of the verbose `place_name` remainder.
+ *
+ * Falls back to stripping the title prefix from [MapboxFeature.placeName]
+ * when context does not contain a place or country entry.
+ */
+private fun MapboxFeature.buildSubtitle(): String? {
+    val place = context.firstOrNull { it.id.startsWith("place.") }?.text
+    val country = context.firstOrNull { it.id.startsWith("country.") }
+    val countryLabel = country?.shortCode?.uppercase() ?: country?.text
+
+    return listOfNotNull(place, countryLabel)
+        .joinToString(", ")
+        .ifEmpty { null }
 }
