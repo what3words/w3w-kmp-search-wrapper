@@ -6,11 +6,16 @@ import com.what3words.core.types.common.W3WResult
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.googleplaces.model.AutocompleteRequest
 import com.what3words.search.wrapper.googleplaces.model.AutocompleteResponse
+import com.what3words.search.wrapper.googleplaces.model.CircleRequest
+import com.what3words.search.wrapper.googleplaces.model.LatLng
+import com.what3words.search.wrapper.googleplaces.model.LocationBiasRequest
 import com.what3words.search.wrapper.googleplaces.model.PlaceDetailsResponse
+import com.what3words.search.wrapper.googleplaces.model.RectangleRequest
 import com.what3words.search.wrapper.googleplaces.model.toGooglePlacesApiError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -21,6 +26,7 @@ import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -134,44 +140,61 @@ internal class GooglePlacesSearchProvider internal constructor(
      *
      * `extras["placeId"]` holds the place identifier required by [resolve].
      */
-    override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> = withContext(Dispatchers.IO) {
-        try {
-            val token = sessionToken()
-            val response = httpClient.post(AUTOCOMPLETE_PATH) {
-                applyHeaders(autoCompleteHeaders)
-                contentType(ContentType.Application.Json)
-                setBody(AutocompleteRequest(input = query, sessionToken = token))
-            }
-
-            if (!response.status.isSuccess()) {
-                return@withContext W3WResult.Failure(response.toGooglePlacesApiError())
-            }
-
-            val results = response.body<AutocompleteResponse>().suggestions
-                .take(config.maxResults)
-                .mapNotNull { suggestion ->
-                    val prediction = suggestion.placePrediction ?: return@mapNotNull null
-                    SearchResult.SearchSuggestion(
-                        query = query,
-                        providerId = providerId,
-                        extras = buildMap {
-                            put(EXTRAS_KEY_PLACE_ID, prediction.placeId)
-                            put(
-                                EXTRAS_KEY_TITLE,
-                                prediction.structuredFormat?.mainText?.text
-                                    ?: prediction.text?.text.orEmpty()
-                            )
-                            prediction.structuredFormat?.secondaryText?.text
-                                ?.takeIf { it.isNotEmpty() }
-                                ?.let { put(EXTRAS_KEY_SUBTITLE, it) }
-                        }
+    override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val token = sessionToken()
+                val response = httpClient.post(AUTOCOMPLETE_PATH) {
+                    applyHeaders(autoCompleteHeaders)
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        AutocompleteRequest(
+                            input = query,
+                            sessionToken = token,
+                            locationBias = config.locationBias?.toLocationBiasRequest(),
+                            origin = config.origin?.let { LatLng(it.lat, it.lng) },
+                            includedRegionCodes = config.includedRegionCodes.takeIf { it.isNotEmpty() },
+                        )
                     )
                 }
-            W3WResult.Success(results)
-        } catch (e: Exception) {
-            W3WResult.Failure(W3WError(e))
+
+                if (!response.status.isSuccess()) {
+                    return@withContext W3WResult.Failure(response.toGooglePlacesApiError())
+                }
+
+                println(response.bodyAsText())
+
+                val results = response.body<AutocompleteResponse>().suggestions
+                    .take(config.maxResults)
+                    .mapNotNull { suggestion ->
+                        val prediction = suggestion.placePrediction ?: return@mapNotNull null
+                        SearchResult.SearchSuggestion(
+                            query = query,
+                            providerId = providerId,
+                            extras = buildMap {
+                                put(EXTRAS_KEY_PLACE_ID, prediction.placeId)
+                                put(
+                                    EXTRAS_KEY_TITLE,
+                                    prediction.structuredFormat?.mainText?.text
+                                        ?: prediction.text?.text.orEmpty()
+                                )
+                                prediction.structuredFormat?.secondaryText?.text
+                                    ?.takeIf { it.isNotEmpty() }
+                                    ?.let { put(EXTRAS_KEY_SUBTITLE, it) }
+                                prediction.distanceToOrigin?.let {
+                                    put(
+                                        EXTRAS_KEY_DISTANCE_TO_FOCUS,
+                                        it.toString()
+                                    )
+                                }
+                            }
+                        )
+                    }
+                W3WResult.Success(results)
+            } catch (e: Exception) {
+                W3WResult.Failure(W3WError(e))
+            }
         }
-    }
 
     /**
      * Fetches place details for the `placeId` in [data]'s extras and converts the coordinates
@@ -213,6 +236,7 @@ internal class GooglePlacesSearchProvider internal constructor(
                             address = w3wResult.value
                         )
                     )
+
                     is W3WResult.Failure -> W3WResult.Failure(w3wResult.error, w3wResult.message)
                 }
             } catch (e: Exception) {
@@ -222,4 +246,21 @@ internal class GooglePlacesSearchProvider internal constructor(
                 rotateSessionToken()
             }
         }
+}
+
+/** Converts a public [LocationBias] to the internal serializable [LocationBiasRequest]. */
+private fun LocationBias.toLocationBiasRequest(): LocationBiasRequest = when (this) {
+    is LocationBias.Circle -> LocationBiasRequest(
+        circle = CircleRequest(
+            center = LatLng(center.lat, center.lng),
+            radius = radiusMeters,
+        )
+    )
+
+    is LocationBias.Rectangle -> LocationBiasRequest(
+        rectangle = RectangleRequest(
+            low = LatLng(low.lat, low.lng),
+            high = LatLng(high.lat, high.lng),
+        )
+    )
 }

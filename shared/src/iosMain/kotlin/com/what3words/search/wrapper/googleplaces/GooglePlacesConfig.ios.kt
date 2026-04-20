@@ -1,5 +1,6 @@
 package com.what3words.search.wrapper.googleplaces
 
+import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.core.types.language.W3WRFC5646Language
 import platform.Foundation.NSBundle
 
@@ -11,6 +12,9 @@ actual class GooglePlacesConfig actual constructor(
     actual val useSessionTokens: Boolean,
     actual val minQueryLength: Int,
     actual val maxResults: Int,
+    actual val locationBias: LocationBias?,
+    actual val origin: W3WCoordinates?,
+    actual val includedRegionCodes: List<String>,
     headers: Map<String, String?>,
 ) {
     private val baseHeaders: Map<String, String?> = headers
@@ -28,6 +32,9 @@ actual class GooglePlacesConfig actual constructor(
         minQueryLength: Int,
         maxResults: Int,
         headers: Map<String, String?>,
+        locationBias: LocationBias?,
+        origin: W3WCoordinates?,
+        includedRegionCodes: List<String>,
     ): GooglePlacesConfig = GooglePlacesConfig(
         apiKey = apiKey,
         language = language,
@@ -35,5 +42,8 @@ actual class GooglePlacesConfig actual constructor(
         minQueryLength = minQueryLength,
         maxResults = maxResults,
         headers = headers,
+        locationBias = locationBias,
+        origin = origin,
+        includedRegionCodes = includedRegionCodes,
     )
 }

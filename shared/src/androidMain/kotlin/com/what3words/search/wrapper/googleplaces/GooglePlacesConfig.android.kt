@@ -3,6 +3,7 @@ package com.what3words.search.wrapper.googleplaces
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.core.types.language.W3WRFC5646Language
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -16,6 +17,9 @@ actual class GooglePlacesConfig actual constructor(
     actual val useSessionTokens: Boolean,
     actual val minQueryLength: Int,
     actual val maxResults: Int,
+    actual val locationBias: LocationBias?,
+    actual val origin: W3WCoordinates?,
+    actual val includedRegionCodes: List<String>,
     actual val headers: Map<String, String?>,
 ) {
     constructor(
@@ -26,6 +30,9 @@ actual class GooglePlacesConfig actual constructor(
         minQueryLength: Int = 3,
         maxResults: Int = 5,
         headers: Map<String, String?> = emptyMap(),
+        locationBias: LocationBias? = null,
+        origin: W3WCoordinates? = null,
+        includedRegionCodes: List<String> = emptyList(),
     ) : this(
         apiKey = apiKey,
         language = language,
@@ -37,6 +44,9 @@ actual class GooglePlacesConfig actual constructor(
             put(HEADER_ANDROID_PACKAGE, context.packageName)
             put(HEADER_ANDROID_CERT, context.getSigningCertFingerprint())
         },
+        locationBias = locationBias,
+        origin = origin,
+        includedRegionCodes = includedRegionCodes,
     )
 
     actual fun copy(
@@ -46,6 +56,9 @@ actual class GooglePlacesConfig actual constructor(
         minQueryLength: Int,
         maxResults: Int,
         headers: Map<String, String?>,
+        locationBias: LocationBias?,
+        origin: W3WCoordinates?,
+        includedRegionCodes: List<String>,
     ): GooglePlacesConfig = GooglePlacesConfig(
         apiKey = apiKey,
         language = language,
@@ -53,6 +66,9 @@ actual class GooglePlacesConfig actual constructor(
         minQueryLength = minQueryLength,
         maxResults = maxResults,
         headers = headers,
+        locationBias = locationBias,
+        origin = origin,
+        includedRegionCodes = includedRegionCodes,
     )
 }
 
