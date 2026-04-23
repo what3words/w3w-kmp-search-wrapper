@@ -1,6 +1,8 @@
 package com.what3words.search.wrapper.core
 
 import com.what3words.core.types.common.W3WResult
+import kotlin.experimental.ExperimentalObjCName
+import kotlin.native.ObjCName
 
 /**
  * Defines a provider capable of handling specific types of search queries.
@@ -23,7 +25,8 @@ interface SearchProvider {
      * @param query The search query string.
      * @return A [W3WResult] containing a list of [SearchResult]s.
      */
-    @Throws(Exception::class)
+    @OptIn(ExperimentalObjCName::class)
+    @ObjCName("search", swiftName = "search")
     suspend fun executeSearch(query: String): W3WResult<List<SearchResult>>
 }
 
