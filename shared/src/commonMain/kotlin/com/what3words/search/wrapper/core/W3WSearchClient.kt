@@ -135,7 +135,7 @@ class W3WSearchClient {
          */
         @OptIn(ExperimentalObjCRefinement::class)
         @HiddenFromObjC
-        fun <TConfig : Any, TProvider : SearchProvider> install(
+        fun <TConfig : SearchConfig, TProvider : SearchProvider> install(
             plugin: SearchPlugin<TConfig, TProvider>,
             config: TConfig,
             priority: Int,
@@ -159,7 +159,7 @@ class W3WSearchClient {
          */
         @OptIn(ExperimentalObjCRefinement::class)
         @HiddenFromObjC
-        fun <TConfig : Any, TProvider : SearchProvider> install(
+        fun <TConfig : SearchConfig, TProvider : SearchProvider> install(
             plugin: SimpleSearchPlugin<TConfig, TProvider>,
             priority: Int,
             configure: TConfig.() -> Unit = {}

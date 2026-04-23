@@ -2,6 +2,7 @@ package com.what3words.search.wrapper.mapbox
 
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.core.types.language.W3WRFC5646Language
+import com.what3words.search.wrapper.core.SearchConfig
 
 /**
  * Configuration for [MapboxSearchProvider].
@@ -27,4 +28,4 @@ data class MapboxConfig(
     val includedRegionCodes: List<String> = emptyList(),
     val fuzzyMatch: Boolean = true,
     val focus: W3WCoordinates? = null
-)
+) : SearchConfig()
