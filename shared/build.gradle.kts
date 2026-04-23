@@ -32,7 +32,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "W3WSearchWrapper"
+            baseName = "W3WKotlinSearchWrapper"
             isStatic = true
             export(libs.what3words.core)
         }
