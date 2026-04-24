@@ -2,6 +2,7 @@ package com.what3words.search.wrapper.googleplaces
 
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.core.types.language.W3WRFC5646Language
+import com.what3words.search.wrapper.core.SearchConfig
 import platform.Foundation.NSBundle
 
 private const val HEADER_IOS_BUNDLE_ID = "X-Ios-Bundle-Identifier"
@@ -16,7 +17,7 @@ actual class GooglePlacesConfig actual constructor(
     actual val origin: W3WCoordinates?,
     actual val includedRegionCodes: List<String>,
     headers: Map<String, String?>,
-) {
+): SearchConfig() {
     private val baseHeaders: Map<String, String?> = headers
 
     actual val headers: Map<String, String?>

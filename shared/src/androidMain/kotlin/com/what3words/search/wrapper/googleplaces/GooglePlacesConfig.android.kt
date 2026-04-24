@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.core.types.language.W3WRFC5646Language
+import com.what3words.search.wrapper.core.SearchConfig
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
@@ -21,7 +22,7 @@ actual class GooglePlacesConfig actual constructor(
     actual val origin: W3WCoordinates?,
     actual val includedRegionCodes: List<String>,
     actual val headers: Map<String, String?>,
-) {
+): SearchConfig() {
     constructor(
         context: Context,
         apiKey: String,
