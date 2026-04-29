@@ -108,14 +108,19 @@ internal class MapboxSearchProvider internal constructor(
 
                 val results = response.body<MapboxSearchResponse>().suggestions
                     .map { suggestion ->
+
+                        val title = when (suggestion.featureType) {
+                            "address" -> suggestion.address ?: suggestion.name
+                            else -> suggestion.name
+                        }
                         SearchResult.SearchSuggestion(
                             query = query,
                             providerId = providerId,
                             extras = buildMap {
-                                put(EXTRAS_KEY_TITLE, suggestion.name)
+                                put(EXTRAS_KEY_TITLE, title)
                                 put(
                                     EXTRAS_KEY_SUBTITLE,
-                                    suggestion.fullAddress ?: suggestion.buildSubtitle() ?: suggestion.placeFormatted
+                                    suggestion.buildSubtitle() ?: suggestion.placeFormatted
                                 )
                                 put(EXTRAS_KEY_MAPBOX_ID, suggestion.mapboxId)
                                 suggestion.distance?.let { put(EXTRAS_KEY_DISTANCE_TO_FOCUS, it.toString()) }
