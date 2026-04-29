@@ -192,19 +192,30 @@ internal class MapboxSearchProvider internal constructor(
 }
 
 /**
- * Builds a concise subtitle from a [Suggestion]'s [Context],
- * picking the city ([Context.place]) and country short code ([Country.countryCode]).
+ * Builds a concise subtitle from a [Suggestion]'s context and metadata.
  *
- * Example: for "49 Gipsy Hill" the context includes
- * `place.name → "London"` and `country.countryCode → "gb"`,
- * producing **"London, GB"** instead of the verbose formatted address.
+ * For **address** features the [Suggestion.address] is omitted (it would duplicate the name),
+ * while for all other feature types it is included as the leading component.
+ * The city ([Context.place]) and country — preferring the short ISO code
+ * ([Country.countryCode], upper-cased) over the full country name — are appended.
+ *
+ * Example: for "Starbucks" with `featureType = "poi"`, `address = "10 Downing Street"`,
+ * `place.name = "London"`, and `country.countryCode = "gb"`,
+ * the result is **"10 Downing Street, London, GB"**.
+ * For an address feature like "10 Downing Street" itself, the result is **"London, GB"**.
+ *
+ * @return The joined subtitle, or `null` if no components are available.
  */
 private fun Suggestion.buildSubtitle(): String? {
+    val address = when (featureType) {
+        "address" -> null
+        else -> address
+    }
     val place = context.place?.name
     val country = context.country
     val countryLabel = country?.countryCode?.uppercase() ?: country?.name
 
-    return listOfNotNull(place, countryLabel)
+    return listOfNotNull(address, place, countryLabel)
         .joinToString(", ")
         .ifEmpty { null }
 }
