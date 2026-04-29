@@ -14,7 +14,6 @@ import com.what3words.search.wrapper.core.SearchConfig
  * @property maxResults Maximum number of search suggestions returned per request. Defaults to `5`.
  * @property includedRegionCodes CLDR two-character region codes to restrict results (e.g. `["US", "GB"]`). Defaults to an empty list (no restriction).
  * @property focus Bias the response to favor results that are closer to this location.
- * @property boundingBox Restrict results to a rectangular bounding box.
  */
 data class MapboxConfig(
     val apiKey: String,
@@ -23,5 +22,4 @@ data class MapboxConfig(
     val maxResults: Int = 5,
     val includedRegionCodes: List<String> = emptyList(),
     val focus: W3WCoordinates? = null,
-    val boundingBox: BoundingBox? = null,
 ) : SearchConfig()

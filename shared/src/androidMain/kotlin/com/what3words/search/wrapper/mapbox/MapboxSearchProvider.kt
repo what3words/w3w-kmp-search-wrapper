@@ -32,10 +32,8 @@ private const val SUGGEST_PATH = "suggest"
 private const val RETRIEVE_PATH = "retrieve"
 
 private const val PARAM_QUERY = "q"
-private const val PARAM_BOUNDING_BOX = "bbox"
 private const val PARAM_SESSION_TOKEN = "session_token"
 private const val PARAM_ACCESS_TOKEN = "access_token"
-private const val PARAM_LANGUAGE = "language"
 private const val PARAM_LIMIT = "limit"
 private const val PARAM_COUNTRY = "country"
 private const val PARAM_PROXIMITY = "proximity"
@@ -96,13 +94,6 @@ internal class MapboxSearchProvider internal constructor(
                     parameter(PARAM_ACCESS_TOKEN, config.apiKey)
                     parameter(PARAM_QUERY, query)
                     parameter(PARAM_LIMIT, config.maxResults)
-                    parameter(PARAM_LANGUAGE, config.language.w3wCode)
-                    config.boundingBox?.let {
-                        parameter(
-                            PARAM_BOUNDING_BOX,
-                            "${it.low.lng},${it.low.lat},${it.high.lng},${it.high.lat}"
-                        )
-                    }
                     if (config.includedRegionCodes.isNotEmpty()) {
                         parameter(PARAM_COUNTRY, config.includedRegionCodes.joinToString(","))
                     }
