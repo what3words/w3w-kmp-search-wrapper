@@ -12,6 +12,7 @@ import com.what3words.core.types.language.W3WLanguage
 import com.what3words.core.types.language.W3WProprietaryLanguage
 import com.what3words.core.types.options.W3WAutosuggestOptions
 import com.what3words.search.wrapper.core.SearchResult
+import com.what3words.search.wrapper.error.MissingAddressIdException
 import com.what3words.search.wrapper.fixtures.fakeAddress
 import com.what3words.search.wrapper.googleplaces.model.GooglePlacesApiError
 import io.ktor.client.HttpClient
@@ -477,9 +478,7 @@ class GooglePlacesSearchProviderTest {
         val result = provider().resolve(suggestion)
 
         assertIs<W3WResult.Failure<SearchResult.ResolvedAddress>>(result)
-        val msg = result.error.message
-        assertNotNull(msg)
-        assertTrue(msg.contains("placeId"))
+        assertTrue(result.error is MissingAddressIdException)
     }
 
     @Test

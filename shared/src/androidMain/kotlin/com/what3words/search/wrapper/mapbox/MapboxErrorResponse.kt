@@ -3,11 +3,18 @@ package com.what3words.search.wrapper.mapbox
 import com.what3words.core.types.common.W3WError
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class MapboxErrorResponse(
-    val message: String = ""
+    val message: Message
+)
+
+@Serializable
+data class Message(
+    @SerialName("error")
+    val error: String,
 )
 
 @Serializable
@@ -18,7 +25,7 @@ internal data class MapboxApiError(
 
 internal suspend fun HttpResponse.toMapboxApiError(): MapboxApiError {
     val message = try {
-        body<MapboxErrorResponse>().message.takeIf { it.isNotEmpty() }
+        body<MapboxErrorResponse>().message.error
     } catch (_: Exception) {
         null
     }
