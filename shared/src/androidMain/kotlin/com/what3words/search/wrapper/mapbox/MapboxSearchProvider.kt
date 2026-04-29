@@ -6,14 +6,18 @@ import com.what3words.core.types.common.W3WResult
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
+import com.what3words.search.wrapper.core.SessionManager
+import com.what3words.search.wrapper.error.InvalidCoordinatesException
+import com.what3words.search.wrapper.error.MissingAddressIdException
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.http.encodeURLPathPart
+import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
@@ -23,23 +27,26 @@ import kotlinx.serialization.json.Json
 /** Unique identifier for the Mapbox geocoding search provider. */
 const val MAPBOX_PROVIDER_ID = "MapboxSearchProvider"
 
-private const val BASE_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places"
+private const val BASE_URL = "https://api.mapbox.com/search/searchbox/v1"
+private const val SUGGEST_PATH = "suggest"
+private const val RETRIEVE_PATH = "retrieve"
+
+private const val PARAM_QUERY = "q"
+private const val PARAM_BOUNDING_BOX = "bbox"
+private const val PARAM_SESSION_TOKEN = "session_token"
 private const val PARAM_ACCESS_TOKEN = "access_token"
+private const val PARAM_LANGUAGE = "language"
 private const val PARAM_LIMIT = "limit"
-private const val PARAM_AUTOCOMPLETE = "autocomplete"
-private const val PARAM_FUZZY_MATCH = "fuzzyMatch"
 private const val PARAM_COUNTRY = "country"
 private const val PARAM_PROXIMITY = "proximity"
-private const val EXTRAS_KEY_LAT = "lat"
-private const val EXTRAS_KEY_LNG = "lng"
+private const val EXTRAS_KEY_MAPBOX_ID = "mapbox_id"
 
 /**
- * [ResolvableSearchProvider] backed by the Mapbox Geocoding API v5.
+ * [ResolvableSearchProvider] backed by the Mapbox Search Box API v1.
  *
- * Searches via `mapbox.places/{query}.json` and resolves suggestions to what3words addresses
- * by converting the coordinates returned in the initial response via
- * [W3WTextDataSource.convertTo3wa]. Because Mapbox includes coordinates in the search result,
- * [resolve] does **not** make an additional network request.
+ * Searches via `/search/searchbox/v1/suggest` and resolves suggestions to what3words addresses
+ * by calling `/search/searchbox/v1/retrieve/{mapbox_id}` to fetch coordinates, then
+ * converting them via [W3WTextDataSource.convertTo3wa].
  *
  * @property config Provider configuration including API key, language, and result limits.
  * @property textDataSource Used for coordinate-to-what3words conversion.
@@ -49,6 +56,8 @@ internal class MapboxSearchProvider internal constructor(
     private val textDataSource: W3WTextDataSource,
     private val httpClient: HttpClient,
 ) : ResolvableSearchProvider {
+
+    private val sessionManager by lazy { SessionManager(maxSuggestCalls = 50, sessionTimeoutSeconds = 180) }
 
     constructor(config: MapboxConfig, textDataSource: W3WTextDataSource) : this(
         config = config,
@@ -69,20 +78,31 @@ internal class MapboxSearchProvider internal constructor(
     override fun canHandle(query: String): Boolean = query.length >= config.minQueryLength
 
     /**
-     * GETs `mapbox.places/{query}.json` and maps each feature to a [SearchResult.SearchSuggestion].
+     * GETs `/search/searchbox/v1/suggest` and maps each suggestion to a [SearchResult.SearchSuggestion].
      *
-     * Coordinates (`lat` / `lng`) are stored in [SearchResult.SearchSuggestion.extras] so that
-     * [resolve] can convert them to a what3words address without an extra network round-trip.
+     * The suggestion's [SearchResult.SearchSuggestion.extras] stores the `mapbox_id` so that
+     * [resolve] can fetch precise coordinates via the retrieve endpoint.
      */
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
             try {
-                val encodedQuery = query.encodeURLPathPart()
-                val response = httpClient.get("$BASE_URL/$encodedQuery.json") {
-                    parameter(PARAM_LIMIT, config.maxResults)
-                    parameter(PARAM_AUTOCOMPLETE, config.autoComplete)
-                    parameter(PARAM_FUZZY_MATCH, config.fuzzyMatch)
+                if (sessionManager.shouldRefresh()) sessionManager.refresh()
+                sessionManager.onSuggestCall()
+                val response = httpClient.get(BASE_URL) {
+                    url {
+                        appendPathSegments(SUGGEST_PATH)
+                    }
+                    parameter(PARAM_SESSION_TOKEN, sessionManager.sessionToken)
                     parameter(PARAM_ACCESS_TOKEN, config.apiKey)
+                    parameter(PARAM_QUERY, query)
+                    parameter(PARAM_LIMIT, config.maxResults)
+                    parameter(PARAM_LANGUAGE, config.language.w3wCode)
+                    config.boundingBox?.let {
+                        parameter(
+                            PARAM_BOUNDING_BOX,
+                            "${it.low.lng},${it.low.lat},${it.high.lng},${it.high.lat}"
+                        )
+                    }
                     if (config.includedRegionCodes.isNotEmpty()) {
                         parameter(PARAM_COUNTRY, config.includedRegionCodes.joinToString(","))
                     }
@@ -95,27 +115,19 @@ internal class MapboxSearchProvider internal constructor(
                     return@withContext W3WResult.Failure(response.toMapboxApiError())
                 }
 
-                val results = response.body<MapboxFeatureCollection>().features
-                    .mapNotNull { feature ->
-                        val lng = feature.center.getOrNull(0) ?: return@mapNotNull null
-                        val lat = feature.center.getOrNull(1) ?: return@mapNotNull null
-
-                        val title = if (!feature.address.isNullOrBlank()) {
-                            "${feature.address} ${feature.text}"
-                        } else {
-                            feature.text
-                        }
-
-                        val subtitle = feature.buildSubtitle()
-
+                val results = response.body<MapboxSearchResponse>().suggestions
+                    .map { suggestion ->
                         SearchResult.SearchSuggestion(
                             query = query,
                             providerId = providerId,
                             extras = buildMap {
-                                put(EXTRAS_KEY_LAT, lat.toString())
-                                put(EXTRAS_KEY_LNG, lng.toString())
-                                put(EXTRAS_KEY_TITLE, title)
-                                subtitle?.let { put(EXTRAS_KEY_SUBTITLE, it) }
+                                put(EXTRAS_KEY_TITLE, suggestion.name)
+                                put(
+                                    EXTRAS_KEY_SUBTITLE,
+                                    suggestion.fullAddress ?: suggestion.buildSubtitle() ?: suggestion.placeFormatted
+                                )
+                                put(EXTRAS_KEY_MAPBOX_ID, suggestion.mapboxId)
+                                suggestion.distance?.let { put(EXTRAS_KEY_DISTANCE_TO_FOCUS, it.toString()) }
                             }
                         )
                     }
@@ -126,29 +138,54 @@ internal class MapboxSearchProvider internal constructor(
         }
 
     /**
+     * Retrieves coordinates via `/search/searchbox/v1/retrieve/{mapbox_id}` and converts them
+     * to a what3words address.
+     *
      * @param data Suggestion produced by [executeSearch].
      * @return [W3WResult.Success] with a [SearchResult.ResolvedAddress], or [W3WResult.Failure]
-     *   if the coordinates are missing/invalid or the w3w conversion fails.
+     *   if the mapbox ID is missing, the retrieve call fails, or coordinate conversion fails.
      */
     override suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> =
         withContext(Dispatchers.IO) {
-            val lat = data.extras[EXTRAS_KEY_LAT]?.toDoubleOrNull()
-                ?: return@withContext W3WResult.Failure(W3WError("Missing or invalid lat in suggestion extras"))
-            val lng = data.extras[EXTRAS_KEY_LNG]?.toDoubleOrNull()
-                ?: return@withContext W3WResult.Failure(W3WError("Missing or invalid lng in suggestion extras"))
+            val id = data.extras[EXTRAS_KEY_MAPBOX_ID] ?: return@withContext W3WResult.Failure(
+                MissingAddressIdException()
+            )
 
             try {
+                val response = httpClient.get(BASE_URL) {
+                    url {
+                        appendPathSegments(RETRIEVE_PATH, id)
+                    }
+                    parameter(PARAM_SESSION_TOKEN, sessionManager.sessionToken)
+                    parameter(PARAM_ACCESS_TOKEN, config.apiKey)
+
+                }
+                if (!response.status.isSuccess()) {
+                    return@withContext W3WResult.Failure(response.toMapboxApiError())
+                }
+
+                sessionManager.refresh()
+                val feature = response.body<MapboxRetrieveResponse>().features.firstOrNull()
+                    ?: return@withContext W3WResult.Failure(W3WError("No features returned from retrieve endpoint"))
+
+                val coordinates = feature.geometry.coordinates
+                val lng = coordinates.getOrNull(0)
+                val lat = coordinates.getOrNull(1)
+                if (lng == null || lat == null) return@withContext W3WResult.Failure(InvalidCoordinatesException())
+
                 when (val w3wResult = textDataSource.convertTo3wa(
                     coordinates = W3WCoordinates(lat = lat, lng = lng),
                     language = config.language,
                 )) {
-                    is W3WResult.Success -> W3WResult.Success(
-                        SearchResult.ResolvedAddress(
-                            query = data.query,
-                            providerId = providerId,
-                            address = w3wResult.value,
+                    is W3WResult.Success -> {
+                        W3WResult.Success(
+                            SearchResult.ResolvedAddress(
+                                query = data.query,
+                                providerId = providerId,
+                                address = w3wResult.value,
+                            )
                         )
-                    )
+                    }
 
                     is W3WResult.Failure -> W3WResult.Failure(w3wResult.error, w3wResult.message)
                 }
@@ -159,20 +196,17 @@ internal class MapboxSearchProvider internal constructor(
 }
 
 /**
- * Builds a concise subtitle from a feature's [MapboxFeature.context] array,
- * picking the city (`place.*`) and country short code (`country.*`).
+ * Builds a concise subtitle from a [Suggestion]'s [Context],
+ * picking the city ([Context.place]) and country short code ([Country.countryCode]).
  *
- * Example: context entries for "49 Gipsy Hill" include
- * `place.xxx → "London"` and `country.xxx → shortCode "gb"`,
- * producing **"London, GB"** instead of the verbose `place_name` remainder.
- *
- * Falls back to stripping the title prefix from [MapboxFeature.placeName]
- * when context does not contain a place or country entry.
+ * Example: for "49 Gipsy Hill" the context includes
+ * `place.name → "London"` and `country.countryCode → "gb"`,
+ * producing **"London, GB"** instead of the verbose formatted address.
  */
-private fun MapboxFeature.buildSubtitle(): String? {
-    val place = context.firstOrNull { it.id.startsWith("place.") }?.text
-    val country = context.firstOrNull { it.id.startsWith("country.") }
-    val countryLabel = country?.shortCode?.uppercase() ?: country?.text
+private fun Suggestion.buildSubtitle(): String? {
+    val place = context.place?.name
+    val country = context.country
+    val countryLabel = country?.countryCode?.uppercase() ?: country?.name
 
     return listOfNotNull(place, countryLabel)
         .joinToString(", ")

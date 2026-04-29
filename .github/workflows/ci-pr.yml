@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - 'epic/**'
+      - 'staging'
 
 jobs:
   unit-tests:

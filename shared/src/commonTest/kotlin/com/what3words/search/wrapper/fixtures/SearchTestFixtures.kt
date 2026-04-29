@@ -6,17 +6,21 @@ import com.what3words.core.types.domain.W3WCountry
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.core.types.geometry.W3WRectangle
 import com.what3words.core.types.language.W3WProprietaryLanguage
+import com.what3words.search.wrapper.core.SearchConfig
 import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.SimpleSearchPlugin
 import com.what3words.search.wrapper.core.W3WSearchClient
 import com.what3words.search.wrapper.fake.FakeW3WTextDataSource
 
+/** Minimal [SearchConfig] for use in tests where configuration is irrelevant. */
+internal class TestSearchConfig : SearchConfig()
+
 /** Wraps any [SearchProvider] in a [SimpleSearchPlugin] that ignores config and data source. */
 internal fun pluginFor(provider: SearchProvider) =
-    object : SimpleSearchPlugin<Unit, SearchProvider>() {
-        override fun defaultConfig() = Unit
-        override fun build(config: Unit, textDataSource: W3WTextDataSource) = provider
+    object : SimpleSearchPlugin<TestSearchConfig, SearchProvider>() {
+        override fun defaultConfig() = TestSearchConfig()
+        override fun build(config: TestSearchConfig, textDataSource: W3WTextDataSource) = provider
     }
 
 /** Creates a [W3WAddress] with fixed test values. */

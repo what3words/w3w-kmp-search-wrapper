@@ -9,6 +9,8 @@ import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
+import com.what3words.search.wrapper.core.SessionManager
+import com.what3words.search.wrapper.error.MissingAddressIdException
 import com.what3words.search.wrapper.googleplaces.model.AutocompleteRequest
 import com.what3words.search.wrapper.googleplaces.model.AutocompleteResponse
 import com.what3words.search.wrapper.googleplaces.model.CircleRequest
@@ -32,12 +34,8 @@ import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 /** Unique identifier for the Google Places search provider. */
 const val GOOGLE_PLACES_PROVIDER_ID = "GooglePlacesSearchProvider"
@@ -88,25 +86,12 @@ internal class GooglePlacesSearchProvider internal constructor(
 
     override val providerId: String = GOOGLE_PLACES_PROVIDER_ID
 
-    @OptIn(ExperimentalUuidApi::class)
-    private fun generateSessionToken() = Uuid.random().toString()
-
-    /** Protects [currentSessionToken] for concurrent coroutine access. */
-    private val tokenMutex = Mutex()
-
-    /** Active session token; `null` when [GooglePlacesConfig.useSessionTokens] is `false`. */
-    private var currentSessionToken: String? =
-        if (config.useSessionTokens) generateSessionToken() else null
+    /** Active session manager; `null` when [GooglePlacesConfig.useSessionTokens] is `false`. */
+    private val sessionManager: SessionManager? =
+        if (config.useSessionTokens) SessionManager() else null
 
     /** Returns the current session token, or `null` if session tokens are disabled. */
-    private suspend fun sessionToken(): String? =
-        if (!config.useSessionTokens) null else tokenMutex.withLock { currentSessionToken }
-
-    /** Generates a new session token. No-op when session tokens are disabled. */
-    private suspend fun rotateSessionToken() {
-        if (!config.useSessionTokens) return
-        tokenMutex.withLock { currentSessionToken = generateSessionToken() }
-    }
+    private fun sessionToken(): String? = sessionManager?.sessionToken
 
     /** Handles queries that meet or exceed [GooglePlacesConfig.minQueryLength]. */
     override fun canHandle(query: String): Boolean = query.length >= config.minQueryLength
@@ -143,6 +128,7 @@ internal class GooglePlacesSearchProvider internal constructor(
         withContext(Dispatchers.IO) {
             try {
                 val token = sessionToken()
+
                 val response = httpClient.post(AUTOCOMPLETE_PATH) {
                     applyHeaders(autoCompleteHeaders)
                     contentType(ContentType.Application.Json)
@@ -205,7 +191,7 @@ internal class GooglePlacesSearchProvider internal constructor(
     override suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> =
         withContext(Dispatchers.IO) {
             val placeId = data.extras[EXTRAS_KEY_PLACE_ID]
-                ?: return@withContext W3WResult.Failure(W3WError("Missing placeId in suggestion extras"))
+                ?: return@withContext W3WResult.Failure(MissingAddressIdException())
 
             val token = sessionToken()
 
@@ -240,7 +226,7 @@ internal class GooglePlacesSearchProvider internal constructor(
                 W3WResult.Failure(W3WError(e))
             } finally {
                 // Rotate the token after every place details fetch to start a fresh billing session.
-                rotateSessionToken()
+                sessionManager?.refresh()
             }
         }
 }
