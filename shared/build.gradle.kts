@@ -25,6 +25,9 @@ kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
+
+        withHostTest {}
+        withDeviceTest {}
     }
 
     listOf(
@@ -61,6 +64,11 @@ kotlin {
             implementation(libs.ktor.client.mock)
             implementation(libs.ktor.serialization)
             implementation(libs.ktor.serialization.json)
+        }
+        getByName("androidHostTest") {
+            dependencies {
+                implementation(libs.kotlin.testJunit)
+            }
         }
     }
 }
