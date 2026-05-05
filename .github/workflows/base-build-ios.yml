@@ -69,6 +69,17 @@ jobs:
           prerelease: ${{ inputs.prerelease }}
           make_latest: ${{ !inputs.prerelease }}
 
+      # Remove all existing assets attached to the current version's release to avoid upload conflicts and ensure only the latest build artifacts are present
+      - name: Remove current release assets
+        if: ${{ steps.devrelease.outputs.id != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/releases/${{ steps.devrelease.outputs.id }}/assets --jq '.[].id' | while read -r asset_id; do
+            echo "Deleting asset $asset_id"
+            gh api --method DELETE repos/${{ github.repository }}/releases/assets/$asset_id
+          done
+
       - name: Build Main
         run: |
           ./gradlew ${{ inputs.publish-tasks }} \
