@@ -12,6 +12,7 @@ import com.what3words.core.types.language.W3WLanguage
 import com.what3words.core.types.language.W3WProprietaryLanguage
 import com.what3words.core.types.options.W3WAutosuggestOptions
 import com.what3words.search.wrapper.core.SearchResult
+import com.what3words.search.wrapper.error.MissingAddressIdException
 import com.what3words.search.wrapper.fixtures.fakeAddress
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -30,7 +31,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class MapboxSearchProviderTest {
@@ -59,12 +59,21 @@ class MapboxSearchProviderTest {
                 throw NotImplementedError()
         }
 
-    private fun mockClient(body: () -> String = { featureCollectionJson() }): HttpClient {
-        val engine = MockEngine { respond(
-            content = body(),
-            status = HttpStatusCode.OK,
-            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-        ) }
+    private fun mockClient(
+        suggestBody: () -> String = { suggestionsJson() },
+        retrieveBody: () -> String = { retrieveResponseJson() },
+    ): HttpClient {
+        val engine = MockEngine { request ->
+            val body = when {
+                request.url.encodedPath.contains("retrieve") -> retrieveBody()
+                else -> suggestBody()
+            }
+            respond(
+                content = body,
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+            )
+        }
         return HttpClient(engine) {
             install(ContentNegotiation) {
                 json(Json { ignoreUnknownKeys = true; isLenient = true })
@@ -96,53 +105,68 @@ class MapboxSearchProviderTest {
         httpClient: HttpClient = mockClient(),
     ) = MapboxSearchProvider(config, dataSource, httpClient)
 
-    /** Builds a valid GeoJSON feature collection with one feature. */
-    private fun featureCollectionJson(
-        id: String = "place.123",
-        text: String = "Hanoi",
-        placeName: String = "Hanoi, Vietnam",
-        lng: Double = 105.8412,
-        lat: Double = 21.0245,
+    /** Builds a Mapbox Search Box API v1 suggestion response with one suggestion. */
+    private fun suggestionsJson(
+        mapboxId: String = "mapbox_id.123",
+        name: String = "Hanoi",
+        featureType: String = "place",
+        placeFormatted: String = "Hanoi, Vietnam",
         address: String? = null,
-        context: String = """[{"id": "country.1", "text": "Vietnam", "short_code": "vn"}]""",
+        language: String = "en",
+        countryCode: String? = "vn",
+        countryName: String? = "Vietnam",
+        placeName: String? = null,
+        distance: Int? = null,
     ): String {
         val addressField = if (address != null) """, "address": "$address"""" else ""
+        val distanceField = if (distance != null) """, "distance": $distance""" else ""
+        val countryFields = listOfNotNull(
+            countryCode?.let { """"country_code": "$it"""" },
+            countryName?.let { """"name": "$it"""" },
+        ).joinToString(", ").let { if (it.isNotEmpty()) "{$it}" else "{}" }
+        val placeField = if (placeName != null) """, "place": {"name": "$placeName"}""" else ""
         return """
             {
-                "features": [{
-                    "id": "$id",
-                    "text": "$text",
-                    "place_name": "$placeName"$addressField,
-                    "center": [$lng, $lat],
-                    "context": $context
+                "suggestions": [{
+                    "name": "$name",
+                    "mapbox_id": "$mapboxId",
+                    "feature_type": "$featureType",
+                    "place_formatted": "$placeFormatted",
+                    "language": "$language"$addressField$distanceField,
+                    "context": {
+                        "country": $countryFields$placeField
+                    }
                 }]
             }
         """.trimIndent()
     }
 
-    /** Builds a feature collection with [n] features. */
-    private fun featureCollectionWithN(n: Int) = buildString {
-        append("""{ "features": [""")
+    /** Builds a suggestion response with [n] suggestions. */
+    private fun suggestionsJsonWithN(n: Int) = buildString {
+        append("""{ "suggestions": [""")
         repeat(n) { i ->
             if (i > 0) append(",")
-            append("""{ "id": "place.$i", "text": "Place $i", "place_name": "Place $i, Country", "center": [${i.toDouble()}, ${i.toDouble()}], "context": [] }""")
+            append("""{ "name": "Place $i", "mapbox_id": "mapbox_id.$i", "feature_type": "place", "place_formatted": "Place $i, Country", "language": "en", "context": { "country": {"country_code": "xx", "name": "Country"} } }""")
         }
         append("] }")
     }
 
     /** Builds a Mapbox API error response body. */
     private fun apiErrorJson(message: String = "Not Authorized - No token was found") =
-        """{ "message": "$message" }"""
+        """{ "message": { "error": "$message" } }"""
 
-    /** Creates a [SearchResult.SearchSuggestion] with lat/lng extras. */
-    private fun suggestionWith(lat: Double = 21.0245, lng: Double = 105.8412) =
+    /** Builds a retrieve response with coordinates. */
+    private fun retrieveResponseJson(lng: Double = 105.8412, lat: Double = 21.0245) =
+        """{ "features": [{ "geometry": { "coordinates": [$lng, $lat] } }] }"""
+
+    /** Creates a [SearchResult.SearchSuggestion] with a mapbox_id extra. */
+    private fun suggestionWith(mapboxId: String = "mapbox_id.123") =
         SearchResult.SearchSuggestion(
             query = "hanoi",
             providerId = MAPBOX_PROVIDER_ID,
             extras = mapOf(
-                "lat" to lat.toString(),
-                "lng" to lng.toString(),
                 SearchResult.EXTRAS_KEY_TITLE to "Hanoi",
+                "mapbox_id" to mapboxId,
             ),
         )
 
@@ -189,22 +213,22 @@ class MapboxSearchProviderTest {
         assertEquals(MAPBOX_PROVIDER_ID, suggestion.providerId)
         assertEquals("Hanoi", suggestion.title)
         assertEquals("VN", suggestion.subtitle)
-        assertNotNull(suggestion.extras["lat"])
-        assertNotNull(suggestion.extras["lng"])
+        assertNotNull(suggestion.extras["mapbox_id"])
     }
 
     @Test
     fun executeSearch_derivesSubtitleFromContext() = runTest {
-        // context has place = "Paris" and country short_code = "fr"
+        // context has place = "Paris" and country country_code = "fr"
         // → subtitle should be "Paris, FR"
-        val body = featureCollectionJson(
-            text = "Eiffel Tower",
-            placeName = "Eiffel Tower, Paris, France",
-            lng = 2.2945,
-            lat = 48.8584,
-            context = """[{"id": "place.1", "text": "Paris"}, {"id": "country.1", "text": "France", "short_code": "fr"}]""",
+        val body = suggestionsJson(
+            name = "Eiffel Tower",
+            featureType = "place",
+            placeFormatted = "Eiffel Tower, Paris, France",
+            countryCode = "fr",
+            countryName = "France",
+            placeName = "Paris",
         )
-        val result = provider(httpClient = mockClient(body = { body })).executeSearch("eiffel")
+        val result = provider(httpClient = mockClient(suggestBody = { body })).executeSearch("eiffel")
 
         assertIs<W3WResult.Success<List<SearchResult>>>(result)
         val suggestion = assertIs<SearchResult.SearchSuggestion>(result.value.first())
@@ -213,74 +237,59 @@ class MapboxSearchProviderTest {
     }
 
     @Test
-    fun executeSearch_setsNullSubtitleWhenContextIsEmpty() = runTest {
-        // When context has no place or country entries, subtitle should be null.
-        val body = featureCollectionJson(
-            text = "Hanoi",
-            placeName = "Hanoi",
-            lng = 105.84,
-            lat = 21.02,
-            context = "[]",
+    fun executeSearch_fallsBackToPlaceFormattedWhenContextIsEmpty() = runTest {
+        // When context has no country or place entries, subtitle falls back to placeFormatted.
+        val body = suggestionsJson(
+            name = "Hanoi",
+            placeFormatted = "Hanoi",
+            countryCode = null,
+            countryName = null,
+            placeName = null,
         )
-        val result = provider(httpClient = mockClient(body = { body })).executeSearch("hanoi")
+        val result = provider(httpClient = mockClient(suggestBody = { body })).executeSearch("hanoi")
 
         assertIs<W3WResult.Success<List<SearchResult>>>(result)
         val suggestion = assertIs<SearchResult.SearchSuggestion>(result.value.first())
-        assertNull(suggestion.subtitle)
+        assertEquals("Hanoi", suggestion.subtitle)
     }
 
     @Test
-    fun executeSearch_storesCoordinatesInExtras() = runTest {
+    fun executeSearch_storesMapboxIdInExtras() = runTest {
         val result = provider().executeSearch("hanoi")
 
         assertIs<W3WResult.Success<List<SearchResult>>>(result)
         val suggestion = assertIs<SearchResult.SearchSuggestion>(result.value.first())
-        // center is [lng, lat]; verify both are stored as strings
-        assertEquals("21.0245", suggestion.extras["lat"])
-        assertEquals("105.8412", suggestion.extras["lng"])
+        assertEquals("mapbox_id.123", suggestion.extras["mapbox_id"])
     }
 
     @Test
-    fun executeSearch_skipsFeatureWithMissingCenterCoordinates() = runTest {
-        // A feature with an empty center array should be silently dropped.
+    fun executeSearch_returnsAllSuggestionsFromResponse() = runTest {
         val body = """
             {
-                "features": [
-                    { "id": "place.1", "text": "Valid", "place_name": "Valid, Country", "center": [1.0, 2.0], "context": [] },
-                    { "id": "place.2", "text": "NoCentre", "place_name": "NoCentre", "center": [], "context": [] }
+                "suggestions": [
+                    { "name": "First", "mapbox_id": "mapbox_id.1", "feature_type": "place", "place_formatted": "First, Country", "language": "en", "context": { "country": {"country_code": "xx", "name": "Country"} } },
+                    { "name": "Second", "mapbox_id": "mapbox_id.2", "feature_type": "place", "place_formatted": "Second, Country", "language": "en", "context": { "country": {"country_code": "xx", "name": "Country"} } }
                 ]
             }
         """.trimIndent()
-        val result = provider(httpClient = mockClient(body = { body })).executeSearch("query")
+        val result = provider(httpClient = mockClient(suggestBody = { body })).executeSearch("query")
 
         assertIs<W3WResult.Success<List<SearchResult>>>(result)
-        assertEquals(1, result.value.size)
-        val suggestion = assertIs<SearchResult.SearchSuggestion>(result.value.first())
-        assertEquals("Valid", suggestion.title)
+        assertEquals(2, result.value.size)
+        val first = assertIs<SearchResult.SearchSuggestion>(result.value[0])
+        assertEquals("First", first.title)
+        val second = assertIs<SearchResult.SearchSuggestion>(result.value[1])
+        assertEquals("Second", second.title)
     }
 
     @Test
-    fun executeSearch_returnsEmptyListForEmptyFeaturesArray() = runTest {
+    fun executeSearch_returnsEmptyListForEmptySuggestionsArray() = runTest {
         val result = provider(
-            httpClient = mockClient(body = { """{ "features": [] }""" })
+            httpClient = mockClient(suggestBody = { """{ "suggestions": [] }""" })
         ).executeSearch("query")
 
         assertIs<W3WResult.Success<List<SearchResult>>>(result)
         assertEquals(0, result.value.size)
-    }
-
-    @Test
-    fun executeSearch_limitsResultsByMaxResults() = runTest {
-        // API returns 8 features; maxResults caps at 3.
-        val p = provider(
-            config = defaultConfig.copy(maxResults = 3),
-            httpClient = mockClient(body = { featureCollectionWithN(8) }),
-        )
-
-        val result = p.executeSearch("query")
-
-        assertIs<W3WResult.Success<List<SearchResult>>>(result)
-        assertEquals(3, result.value.size)
     }
 
     @Test
@@ -297,33 +306,35 @@ class MapboxSearchProviderTest {
 
     @Test
     fun executeSearch_includesAddressInTitleWhenPresent() = runTest {
-        val body = featureCollectionJson(
-            id = "address.123",
-            text = "Gipsy Hill",
-            placeName = "49 Gipsy Hill, London, England, United Kingdom",
+        val body = suggestionsJson(
+            name = "Gipsy Hill",
+            featureType = "address",
             address = "49",
-            lng = -0.0843,
-            lat = 51.4208,
-            context = """[{"id": "place.1", "text": "London"}, {"id": "region.1", "text": "England"}, {"id": "country.1", "text": "United Kingdom", "short_code": "gb"}]""",
+            placeFormatted = "49 Gipsy Hill, London, England, United Kingdom",
+            countryCode = "gb",
+            countryName = "United Kingdom",
+            placeName = "London",
         )
-        val result = provider(httpClient = mockClient(body = { body })).executeSearch("49 gipsy hill")
+        val result = provider(httpClient = mockClient(suggestBody = { body })).executeSearch("49 gipsy hill")
 
         assertIs<W3WResult.Success<List<SearchResult>>>(result)
         val suggestion = assertIs<SearchResult.SearchSuggestion>(result.value.first())
-        assertEquals("49 Gipsy Hill", suggestion.title)
+        assertEquals("49", suggestion.title)
         assertEquals("London, GB", suggestion.subtitle)
     }
 
     @Test
-    fun executeSearch_usesTextOnlyWhenAddressIsNull() = runTest {
-        val body = featureCollectionJson(
-            text = "Gipsy Hill",
-            placeName = "Gipsy Hill, London, England, United Kingdom",
-            lng = -0.0843,
-            lat = 51.4208,
-            context = """[{"id": "place.1", "text": "London"}, {"id": "country.1", "text": "United Kingdom", "short_code": "gb"}]""",
+    fun executeSearch_usesNameWhenAddressIsNull() = runTest {
+        val body = suggestionsJson(
+            name = "Gipsy Hill",
+            featureType = "address",
+            address = null,
+            placeFormatted = "Gipsy Hill, London, England, United Kingdom",
+            countryCode = "gb",
+            countryName = "United Kingdom",
+            placeName = "London",
         )
-        val result = provider(httpClient = mockClient(body = { body })).executeSearch("gipsy hill")
+        val result = provider(httpClient = mockClient(suggestBody = { body })).executeSearch("gipsy hill")
 
         assertIs<W3WResult.Success<List<SearchResult>>>(result)
         val suggestion = assertIs<SearchResult.SearchSuggestion>(result.value.first())
@@ -351,35 +362,20 @@ class MapboxSearchProviderTest {
     // ── resolve ───────────────────────────────────────────────────────────────
 
     @Test
-    fun resolve_returnsFailureWhenLatMissingFromExtras() = runTest {
+    fun resolve_returnsFailureWhenMapboxIdMissingFromExtras() = runTest {
         val suggestion = SearchResult.SearchSuggestion(
             query = "hanoi",
             providerId = MAPBOX_PROVIDER_ID,
-            extras = mapOf("lng" to "105.8412"),  // no lat
+            extras = mapOf("some_key" to "some_value"),  // no mapbox_id
         )
 
         val result = provider().resolve(suggestion)
 
         assertIs<W3WResult.Failure<SearchResult.ResolvedAddress>>(result)
-        val msg = result.error.message
+        val error = assertIs<MissingAddressIdException>(result.error)
+        val msg = error.message
         assertNotNull(msg)
-        assertTrue(msg.contains("lat"))
-    }
-
-    @Test
-    fun resolve_returnsFailureWhenLngMissingFromExtras() = runTest {
-        val suggestion = SearchResult.SearchSuggestion(
-            query = "hanoi",
-            providerId = MAPBOX_PROVIDER_ID,
-            extras = mapOf("lat" to "21.0245"),  // no lng
-        )
-
-        val result = provider().resolve(suggestion)
-
-        assertIs<W3WResult.Failure<SearchResult.ResolvedAddress>>(result)
-        val msg = result.error.message
-        assertNotNull(msg)
-        assertTrue(msg.contains("lng"))
+        assertTrue(msg.contains("Missing address id"))
     }
 
     @Test
@@ -393,6 +389,7 @@ class MapboxSearchProviderTest {
         val result = provider().resolve(suggestion)
 
         assertIs<W3WResult.Failure<SearchResult.ResolvedAddress>>(result)
+        assertIs<MissingAddressIdException>(result.error)
     }
 
     @Test
@@ -416,13 +413,15 @@ class MapboxSearchProviderTest {
     }
 
     @Test
-    fun resolve_doesNotMakeNetworkRequest() = runTest {
-        // Verify resolve uses extras from the suggestion and never calls the HTTP client.
+    fun resolve_makesOneHttpRequestToRetrieveEndpoint() = runTest {
+        // Verify resolve calls the retrieve endpoint exactly once.
         var requestCount = 0
-        val engine = MockEngine {
+        var lastRequestPath: String? = null
+        val engine = MockEngine { request ->
             requestCount++
+            lastRequestPath = request.url.encodedPath
             respond(
-                content = featureCollectionJson(),
+                content = retrieveResponseJson(),
                 status = HttpStatusCode.OK,
                 headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
             )
@@ -433,6 +432,8 @@ class MapboxSearchProviderTest {
 
         provider(httpClient = httpClient).resolve(suggestionWith())
 
-        assertEquals(0, requestCount, "resolve should not make any HTTP requests")
+        assertEquals(1, requestCount, "resolve should make exactly one HTTP request")
+        assertNotNull(lastRequestPath)
+        assertTrue(lastRequestPath.contains("retrieve"), "Request should be to retrieve endpoint")
     }
 }
