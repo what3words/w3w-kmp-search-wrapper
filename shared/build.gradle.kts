@@ -38,6 +38,18 @@ kotlin {
             baseName = "W3WKotlinSearchWrapper"
             isStatic = true
             export(libs.what3words.core)
+
+            // TODO: Remove this when upgrading to Kotlin 2.2.20
+            freeCompilerArgs += listOf("-Xexport-kdoc")
+        }
+
+        // TODO: Remove this when upgrading to Kotlin 2.2.20
+        iosTarget.compilations.configureEach {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexport-kdoc")
+                }
+            }
         }
     }
 
