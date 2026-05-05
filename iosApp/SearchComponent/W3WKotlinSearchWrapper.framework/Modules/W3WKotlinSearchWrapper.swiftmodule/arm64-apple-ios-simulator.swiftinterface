@@ -1,0 +1,1305 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.2.1 effective-5.10 (swiftlang-6.2.1.4.8 clang-1700.4.4.1)
+// swift-module-flags: -target arm64-apple-ios14.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -O -module-name W3WKotlinSearchWrapper
+// swift-module-flags-ignorable:  -formal-cxx-interoperability-mode=off -interface-compiler-version 6.2.1
+import Combine
+import Foundation
+import Swift
+@_exported import W3WKotlinSearchWrapper
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+extension W3WKotlinSearchWrapper.SkieSwiftFlowProtocol {
+  public func toPublisher() -> some Combine.Publisher<Self.Element, _Concurrency.CancellationError>
+  
+}
+extension Combine.Publisher where Self.Failure == _Concurrency.CancellationError {
+  public func sink(receiveValue: @escaping (Self.Output) -> Swift.Void) -> Combine.AnyCancellable
+}
+extension Combine.Future where Failure == any Swift.Error {
+  convenience public init(async function: @escaping () async throws -> Output)
+}
+extension Combine.Future where Failure == Swift.Never {
+  convenience public init(async function: @escaping () async -> Output)
+}
+public enum Skie {
+  public enum RuntimeKotlin {
+    public enum SkieColdFlowIterator {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.SkieColdFlowIterator
+    }
+    public enum SkieKotlinFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.SkieKotlinFlow
+    }
+    public enum SkieKotlinMutableSharedFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow
+    }
+    public enum SkieKotlinMutableStateFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow
+    }
+    public enum SkieKotlinOptionalFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.SkieKotlinOptionalFlow
+    }
+    public enum SkieKotlinOptionalMutableSharedFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow
+    }
+    public enum SkieKotlinOptionalMutableStateFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow
+    }
+    public enum SkieKotlinOptionalSharedFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow
+    }
+    public enum SkieKotlinOptionalStateFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow
+    }
+    public enum SkieKotlinSharedFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.SkieKotlinSharedFlow
+    }
+    public enum SkieKotlinStateFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.SkieKotlinStateFlow
+    }
+    public enum Skie_CancellationHandler {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.Skie_CancellationHandler
+    }
+    public enum Skie_DispatcherDelegate {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.Skie_DispatcherDelegate
+    }
+    public enum Skie_SuspendHandler {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.Skie_SuspendHandler
+    }
+    public enum Skie_SuspendResult {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.Skie_SuspendResult
+      public enum Success {
+        public typealias __Kotlin = W3WKotlinSearchWrapper.Skie_SuspendResult.Success
+      }
+      public enum Error {
+        public typealias __Kotlin = W3WKotlinSearchWrapper.Skie_SuspendResult.Error
+      }
+      public enum Canceled {
+        public typealias __Kotlin = W3WKotlinSearchWrapper.Skie_SuspendResult.Canceled
+      }
+    }
+  }
+  public typealias co_touchlab_skie__runtime_kotlin = W3WKotlinSearchWrapper.Skie.RuntimeKotlin
+  public enum KotlinxCoroutinesCore {
+    public enum Flow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.Kotlinx_coroutines_coreFlow
+    }
+    public enum StateFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.Kotlinx_coroutines_coreStateFlow
+    }
+    public enum SharedFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.Kotlinx_coroutines_coreSharedFlow
+    }
+    public enum MutableSharedFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.Kotlinx_coroutines_coreMutableSharedFlow
+    }
+    public enum MutableStateFlow {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.Kotlinx_coroutines_coreMutableStateFlow
+    }
+    public enum Runnable {
+      public typealias __Kotlin = W3WKotlinSearchWrapper.Kotlinx_coroutines_coreRunnable
+    }
+  }
+  public typealias org_jetbrains_kotlinx__kotlinx_coroutines_core = W3WKotlinSearchWrapper.Skie.KotlinxCoroutinesCore
+  public enum Lib {
+    public enum W3WLanguage {
+    }
+    public enum W3WResult {
+    }
+  }
+  public typealias w3w_core_library__lib = W3WKotlinSearchWrapper.Skie.Lib
+  public enum KotlinxSerializationCore {
+    public enum SerialKind {
+    }
+    public enum SerializersModule {
+    }
+    public enum PolymorphicKind {
+    }
+    public enum PrimitiveKind {
+    }
+    public enum StructureKind {
+    }
+  }
+  public typealias org_jetbrains_kotlinx__kotlinx_serialization_core = W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore
+  public enum Shared {
+    public enum SearchResult {
+    }
+    public enum LocationBias {
+    }
+  }
+  public typealias W3wkmpsearchwrapper__shared = W3WKotlinSearchWrapper.Skie.Shared
+}
+@_hasMissingDesignatedInitializers public class SkieSwiftFlowIterator<T> : _Concurrency.AsyncIteratorProtocol {
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(iOS 13, macOS 10.15, watchOS 6, tvOS 13, *)
+  public func next() async -> T?
+  #endif
+  @objc deinit
+  public typealias Element = T
+  @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, macOS 15.0, *)
+  @_implements(_Concurrency.AsyncIteratorProtocol, Failure) public typealias __AsyncIteratorProtocol_Failure = Swift.Never
+}
+public protocol SkieSwiftFlowProtocol<Element> : _Concurrency.AsyncSequence {
+  associatedtype Element
+  associatedtype Delegate : W3WKotlinSearchWrapper.Kotlinx_coroutines_coreFlow
+}
+@_hasMissingDesignatedInitializers final public class SkieSwiftFlow<T> : W3WKotlinSearchWrapper.SkieSwiftFlowProtocol, Swift._ObjectiveCBridgeable {
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftFlow<T>?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftFlow<T>?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinFlow<Swift.AnyObject>?) -> Self
+  #endif
+  final public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.SkieKotlinFlow<Swift.AnyObject>
+  final public func makeAsyncIterator() -> W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T>
+  public typealias AsyncIterator = W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T>
+  public typealias Element = T
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.SkieKotlinFlow<Swift.AnyObject>
+  public typealias Delegate = any W3WKotlinSearchWrapper.Kotlinx_coroutines_coreFlow
+  @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, macOS 15.0, *)
+  @_implements(_Concurrency.AsyncSequence, Failure) public typealias __AsyncSequence_Failure = Swift.Never
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers final public class SkieSwiftOptionalFlow<T> : W3WKotlinSearchWrapper.SkieSwiftFlowProtocol, Swift._ObjectiveCBridgeable {
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftOptionalFlow<T>?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftOptionalFlow<T>?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<Swift.AnyObject>?) -> Self
+  #endif
+  final public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<Swift.AnyObject>
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public func makeAsyncIterator() -> W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T?>
+  #endif
+  public typealias AsyncIterator = W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T?>
+  public typealias Element = T?
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<Swift.AnyObject>
+  public typealias Delegate = any W3WKotlinSearchWrapper.Kotlinx_coroutines_coreFlow
+  @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, macOS 15.0, *)
+  @_implements(_Concurrency.AsyncSequence, Failure) public typealias __AsyncSequence_Failure = Swift.Never
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers final public class SkieSwiftSharedFlow<T> : W3WKotlinSearchWrapper.SkieSwiftFlowProtocol, Swift._ObjectiveCBridgeable {
+  final public var replayCache: [T] {
+    get
+  }
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinSharedFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinSharedFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinSharedFlow<Swift.AnyObject>?) -> Self
+  #endif
+  final public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.SkieKotlinSharedFlow<Swift.AnyObject>
+  final public func makeAsyncIterator() -> W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T>
+  public typealias AsyncIterator = W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T>
+  public typealias Element = T
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.SkieKotlinSharedFlow<Swift.AnyObject>
+  public typealias Delegate = any W3WKotlinSearchWrapper.Kotlinx_coroutines_coreSharedFlow
+  @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, macOS 15.0, *)
+  @_implements(_Concurrency.AsyncSequence, Failure) public typealias __AsyncSequence_Failure = Swift.Never
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers final public class SkieSwiftOptionalSharedFlow<T> : W3WKotlinSearchWrapper.SkieSwiftFlowProtocol, Swift._ObjectiveCBridgeable {
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public var replayCache: [T?] {
+    get
+  }
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow<T>?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow<T>?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<Swift.AnyObject>?) -> Self
+  #endif
+  final public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<Swift.AnyObject>
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public func makeAsyncIterator() -> W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T?>
+  #endif
+  public typealias AsyncIterator = W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T?>
+  public typealias Element = T?
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<Swift.AnyObject>
+  public typealias Delegate = any W3WKotlinSearchWrapper.Kotlinx_coroutines_coreSharedFlow
+  @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, macOS 15.0, *)
+  @_implements(_Concurrency.AsyncSequence, Failure) public typealias __AsyncSequence_Failure = Swift.Never
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers final public class SkieSwiftMutableSharedFlow<T> : W3WKotlinSearchWrapper.SkieSwiftFlowProtocol, Swift._ObjectiveCBridgeable {
+  final public var subscriptionCount: W3WKotlinSearchWrapper.SkieSwiftStateFlow<W3WKotlinSearchWrapper.KotlinInt> {
+    get
+  }
+  final public var replayCache: [T] {
+    get
+  }
+  @available(iOS 13, macOS 10.15, watchOS 6, tvOS 13, *)
+  final public func emit(value: T) async throws
+  final public func tryEmit(value: T) -> Swift.Bool
+  final public func resetReplayCache()
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<Swift.AnyObject>?) -> Self
+  #endif
+  final public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<Swift.AnyObject>
+  final public func makeAsyncIterator() -> W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T>
+  public typealias AsyncIterator = W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T>
+  public typealias Element = T
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<Swift.AnyObject>
+  public typealias Delegate = any W3WKotlinSearchWrapper.Kotlinx_coroutines_coreMutableSharedFlow
+  @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, macOS 15.0, *)
+  @_implements(_Concurrency.AsyncSequence, Failure) public typealias __AsyncSequence_Failure = Swift.Never
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers final public class SkieSwiftOptionalMutableSharedFlow<T> : W3WKotlinSearchWrapper.SkieSwiftFlowProtocol, Swift._ObjectiveCBridgeable {
+  final public var subscriptionCount: W3WKotlinSearchWrapper.SkieSwiftStateFlow<W3WKotlinSearchWrapper.KotlinInt> {
+    get
+  }
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public var replayCache: [T?] {
+    get
+  }
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(iOS 13, macOS 10.15, watchOS 6, tvOS 13, *)
+  final public func emit(value: T?) async throws
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public func tryEmit(value: T?) -> Swift.Bool
+  #endif
+  final public func resetReplayCache()
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<Swift.AnyObject>?) -> Self
+  #endif
+  final public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<Swift.AnyObject>
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public func makeAsyncIterator() -> W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T?>
+  #endif
+  public typealias AsyncIterator = W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T?>
+  public typealias Element = T?
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<Swift.AnyObject>
+  public typealias Delegate = any W3WKotlinSearchWrapper.Kotlinx_coroutines_coreMutableSharedFlow
+  @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, macOS 15.0, *)
+  @_implements(_Concurrency.AsyncSequence, Failure) public typealias __AsyncSequence_Failure = Swift.Never
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers final public class SkieSwiftStateFlow<T> : W3WKotlinSearchWrapper.SkieSwiftFlowProtocol, Swift._ObjectiveCBridgeable {
+  final public var value: T {
+    get
+  }
+  final public var replayCache: [T] {
+    get
+  }
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinStateFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinStateFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinStateFlow<Swift.AnyObject>?) -> Self
+  #endif
+  final public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.SkieKotlinStateFlow<Swift.AnyObject>
+  final public func makeAsyncIterator() -> W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T>
+  public typealias AsyncIterator = W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T>
+  public typealias Element = T
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.SkieKotlinStateFlow<Swift.AnyObject>
+  public typealias Delegate = any W3WKotlinSearchWrapper.Kotlinx_coroutines_coreStateFlow
+  @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, macOS 15.0, *)
+  @_implements(_Concurrency.AsyncSequence, Failure) public typealias __AsyncSequence_Failure = Swift.Never
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers final public class SkieSwiftOptionalStateFlow<T> : W3WKotlinSearchWrapper.SkieSwiftFlowProtocol, Swift._ObjectiveCBridgeable {
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public var value: T? {
+    get
+  }
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public var replayCache: [T?] {
+    get
+  }
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<Swift.AnyObject>?) -> Self
+  #endif
+  final public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<Swift.AnyObject>
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public func makeAsyncIterator() -> W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T?>
+  #endif
+  public typealias AsyncIterator = W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T?>
+  public typealias Element = T?
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<Swift.AnyObject>
+  public typealias Delegate = any W3WKotlinSearchWrapper.Kotlinx_coroutines_coreStateFlow
+  @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, macOS 15.0, *)
+  @_implements(_Concurrency.AsyncSequence, Failure) public typealias __AsyncSequence_Failure = Swift.Never
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers final public class SkieSwiftMutableStateFlow<T> : W3WKotlinSearchWrapper.SkieSwiftFlowProtocol, Swift._ObjectiveCBridgeable {
+  final public var value: T {
+    get
+    set(value)
+  }
+  final public var replayCache: [T] {
+    get
+  }
+  final public var subscriptionCount: W3WKotlinSearchWrapper.SkieSwiftStateFlow<W3WKotlinSearchWrapper.KotlinInt> {
+    get
+  }
+  final public func compareAndSet(expect: T, update: T) -> Swift.Bool
+  @available(iOS 13, macOS 10.15, watchOS 6, tvOS 13, *)
+  final public func emit(value: T) async throws
+  final public func tryEmit(value: T) -> Swift.Bool
+  final public func resetReplayCache()
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<Swift.AnyObject>?) -> Self
+  #endif
+  final public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<Swift.AnyObject>
+  final public func makeAsyncIterator() -> W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T>
+  public typealias AsyncIterator = W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T>
+  public typealias Element = T
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<Swift.AnyObject>
+  public typealias Delegate = any W3WKotlinSearchWrapper.Kotlinx_coroutines_coreMutableStateFlow
+  @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, macOS 15.0, *)
+  @_implements(_Concurrency.AsyncSequence, Failure) public typealias __AsyncSequence_Failure = Swift.Never
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers final public class SkieSwiftOptionalMutableStateFlow<T> : W3WKotlinSearchWrapper.SkieSwiftFlowProtocol, Swift._ObjectiveCBridgeable {
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public var value: T? {
+    get
+    set(value)
+  }
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public var replayCache: [T?] {
+    get
+  }
+  #endif
+  final public var subscriptionCount: W3WKotlinSearchWrapper.SkieSwiftStateFlow<W3WKotlinSearchWrapper.KotlinInt> {
+    get
+  }
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public func compareAndSet(expect: T?, update: T?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(iOS 13, macOS 10.15, watchOS 6, tvOS 13, *)
+  final public func emit(value: T?) async throws
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public func tryEmit(value: T?) -> Swift.Bool
+  #endif
+  final public func resetReplayCache()
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<Swift.AnyObject>, result: inout W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<Swift.AnyObject>?) -> Self
+  #endif
+  final public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<Swift.AnyObject>
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public func makeAsyncIterator() -> W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T?>
+  #endif
+  public typealias AsyncIterator = W3WKotlinSearchWrapper.SkieSwiftFlowIterator<T?>
+  public typealias Element = T?
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<Swift.AnyObject>
+  public typealias Delegate = any W3WKotlinSearchWrapper.Kotlinx_coroutines_coreMutableStateFlow
+  @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, macOS 15.0, *)
+  @_implements(_Concurrency.AsyncSequence, Failure) public typealias __AsyncSequence_Failure = Swift.Never
+  @objc deinit
+}
+extension W3WKotlinSearchWrapper.Skie.RuntimeKotlin.SkieColdFlowIterator {
+  public struct __Suspend<E> where E : AnyObject {
+    public let __kotlinObject: W3WKotlinSearchWrapper.SkieColdFlowIterator<E>
+    public init(_ __kotlinObject: W3WKotlinSearchWrapper.SkieColdFlowIterator<E>)
+  }
+}
+public func skie<E>(_ kotlinObject: W3WKotlinSearchWrapper.SkieColdFlowIterator<E>) -> W3WKotlinSearchWrapper.Skie.RuntimeKotlin.SkieColdFlowIterator.__Suspend<E> where E : AnyObject
+extension W3WKotlinSearchWrapper.Skie.RuntimeKotlin.SkieColdFlowIterator.__Suspend {
+  @available(iOS 13, macOS 10.15, watchOS 6, tvOS 13, *)
+  public func hasNext() async throws -> W3WKotlinSearchWrapper.KotlinBoolean
+}
+extension W3WKotlinSearchWrapper.Kotlinx_coroutines_coreFlow {
+  @available(iOS 13, macOS 10.15, watchOS 6, tvOS 13, *)
+  public func collect(collector: any W3WKotlinSearchWrapper.Kotlinx_coroutines_coreFlowCollector) async throws
+}
+extension W3WKotlinSearchWrapper.Kotlinx_coroutines_coreFlowCollector {
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(iOS 13, macOS 10.15, watchOS 6, tvOS 13, *)
+  public func emit(value: Any?) async throws
+  #endif
+}
+extension W3WKotlinSearchWrapper.SearchProvider {
+  @available(iOS 13, macOS 10.15, watchOS 6, tvOS 13, *)
+  public func search(query: Swift.String) async throws -> W3WKotlinSearchWrapper.W3WResult<Foundation.NSArray>
+}
+extension W3WKotlinSearchWrapper.ResolvableSearchProvider {
+  @available(iOS 13, macOS 10.15, watchOS 6, tvOS 13, *)
+  public func resolve(data: W3WKotlinSearchWrapper.SearchResult.SearchSuggestion) async throws -> W3WKotlinSearchWrapper.W3WResult<W3WKotlinSearchWrapper.SearchResult.ResolvedAddress>
+}
+extension W3WKotlinSearchWrapper.W3WSearchClient {
+  @available(iOS 13, macOS 10.15, watchOS 6, tvOS 13, *)
+  public func resolve(data: W3WKotlinSearchWrapper.SearchResult.SearchSuggestion) async throws -> W3WKotlinSearchWrapper.W3WResult<W3WKotlinSearchWrapper.SearchResult.ResolvedAddress>
+  @available(iOS 13, macOS 10.15, watchOS 6, tvOS 13, *)
+  public func search(query: Swift.String) async throws -> W3WKotlinSearchWrapper.W3WResult<Foundation.NSArray>
+}
+public func SkieKotlinFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinFlow<T> where T : AnyObject
+public func SkieKotlinFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinFlow<T> where T : AnyObject
+public func SkieKotlinFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinFlow<T> where T : AnyObject
+public func SkieKotlinFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinFlow<T> where T : AnyObject
+public func SkieKotlinFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinFlow<T> where T : AnyObject
+public func SkieKotlinFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+extension W3WKotlinSearchWrapper.SkieSwiftFlow where T : AnyObject {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+}
+extension W3WKotlinSearchWrapper.SkieSwiftFlow where T : Swift._ObjectiveCBridgeable {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+}
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T> where T : AnyObject
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T> where T : AnyObject
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T> where T : AnyObject
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T> where T : AnyObject
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T> where T : AnyObject
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T> where T : AnyObject
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T> where T : AnyObject
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T> where T : AnyObject
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T> where T : AnyObject
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T> where T : AnyObject
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+extension W3WKotlinSearchWrapper.SkieSwiftOptionalFlow where T : AnyObject {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>)
+}
+extension W3WKotlinSearchWrapper.SkieSwiftOptionalFlow where T : Swift._ObjectiveCBridgeable {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>)
+}
+public func SkieKotlinSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T> where T : AnyObject
+public func SkieKotlinSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T> where T : AnyObject
+public func SkieKotlinSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T> where T : AnyObject
+public func SkieKotlinSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T> where T : AnyObject
+public func SkieKotlinSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+extension W3WKotlinSearchWrapper.SkieSwiftSharedFlow where T : AnyObject {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+}
+extension W3WKotlinSearchWrapper.SkieSwiftSharedFlow where T : Swift._ObjectiveCBridgeable {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+}
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T> where T : AnyObject
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T> where T : AnyObject
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T> where T : AnyObject
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T> where T : AnyObject
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T> where T : AnyObject
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T> where T : AnyObject
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T> where T : AnyObject
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T> where T : AnyObject
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+extension W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow where T : AnyObject {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>)
+}
+extension W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow where T : Swift._ObjectiveCBridgeable {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>)
+}
+public func SkieKotlinMutableSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T> where T : AnyObject
+public func SkieKotlinMutableSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+extension W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow where T : AnyObject {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>)
+}
+extension W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow where T : Swift._ObjectiveCBridgeable {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>)
+}
+public func SkieKotlinOptionalMutableSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<T> where T : AnyObject
+public func SkieKotlinOptionalMutableSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<T> where T : AnyObject
+public func SkieKotlinOptionalMutableSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalMutableSharedFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+extension W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow where T : AnyObject {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>)
+}
+extension W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow where T : Swift._ObjectiveCBridgeable {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableSharedFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableSharedFlow<T>)
+}
+public func SkieKotlinStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinStateFlow<T> where T : AnyObject
+public func SkieKotlinStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinStateFlow<T> where T : AnyObject
+public func SkieKotlinStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinStateFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinStateFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+extension W3WKotlinSearchWrapper.SkieSwiftStateFlow where T : AnyObject {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+}
+extension W3WKotlinSearchWrapper.SkieSwiftStateFlow where T : Swift._ObjectiveCBridgeable {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+}
+public func SkieKotlinOptionalStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T> where T : AnyObject
+public func SkieKotlinOptionalStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T> where T : AnyObject
+public func SkieKotlinOptionalStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T> where T : AnyObject
+public func SkieKotlinOptionalStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T> where T : AnyObject
+public func SkieKotlinOptionalStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+extension W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow where T : AnyObject {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>)
+}
+extension W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow where T : Swift._ObjectiveCBridgeable {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>)
+}
+public func SkieKotlinMutableStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T> where T : AnyObject
+public func SkieKotlinMutableStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+extension W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow where T : AnyObject {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+}
+extension W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow where T : Swift._ObjectiveCBridgeable {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+}
+public func SkieKotlinOptionalMutableStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<T> where T : AnyObject
+public func SkieKotlinOptionalMutableStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<T> where T : AnyObject
+public func SkieKotlinOptionalMutableStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+public func SkieKotlinOptionalMutableStateFlow<T>(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>) -> W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<T._ObjectiveCType> where T : Swift._ObjectiveCBridgeable
+extension W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow where T : AnyObject {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>)
+}
+extension W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow where T : Swift._ObjectiveCBridgeable {
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieKotlinOptionalMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T._ObjectiveCType>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftMutableStateFlow<T>)
+  convenience public init(_ flow: W3WKotlinSearchWrapper.SkieSwiftOptionalMutableStateFlow<T>)
+}
+@frozen public enum W3WTextDataSourceVersion : Swift.Hashable, Swift.CaseIterable, Swift._ObjectiveCBridgeable {
+  case library
+  case dataSource
+  case data
+  public var name: Swift.String {
+    get
+  }
+  public var ordinal: Swift.Int32 {
+    get
+  }
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WTextDataSourceVersion, result: inout W3WKotlinSearchWrapper.W3WTextDataSourceVersion?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WTextDataSourceVersion, result: inout W3WKotlinSearchWrapper.W3WTextDataSourceVersion?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WTextDataSourceVersion?) -> W3WKotlinSearchWrapper.W3WTextDataSourceVersion
+  #endif
+  public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.__W3WTextDataSourceVersion
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.__W3WTextDataSourceVersion
+  public static func == (a: W3WKotlinSearchWrapper.W3WTextDataSourceVersion, b: W3WKotlinSearchWrapper.W3WTextDataSourceVersion) -> Swift.Bool
+  public typealias AllCases = [W3WKotlinSearchWrapper.W3WTextDataSourceVersion]
+  nonisolated public static var allCases: [W3WKotlinSearchWrapper.W3WTextDataSourceVersion] {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension W3WKotlinSearchWrapper.W3WTextDataSourceVersion {
+  public func toKotlinEnum() -> W3WKotlinSearchWrapper.__W3WTextDataSourceVersion
+}
+extension W3WKotlinSearchWrapper.__W3WTextDataSourceVersion {
+  public func toSwiftEnum() -> W3WKotlinSearchWrapper.W3WTextDataSourceVersion
+}
+@frozen public enum W3WAutosuggestInputType : Swift.Hashable, Swift.CaseIterable, Swift._ObjectiveCBridgeable {
+  case text
+  case voconHybrid
+  case nmdpAsr
+  case genericVoice
+  case speechmatics
+  public var name: Swift.String {
+    get
+  }
+  public var ordinal: Swift.Int32 {
+    get
+  }
+  public var value: Swift.String {
+    get
+  }
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WAutosuggestInputType, result: inout W3WKotlinSearchWrapper.W3WAutosuggestInputType?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WAutosuggestInputType, result: inout W3WKotlinSearchWrapper.W3WAutosuggestInputType?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WAutosuggestInputType?) -> W3WKotlinSearchWrapper.W3WAutosuggestInputType
+  #endif
+  public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.__W3WAutosuggestInputType
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.__W3WAutosuggestInputType
+  public static func == (a: W3WKotlinSearchWrapper.W3WAutosuggestInputType, b: W3WKotlinSearchWrapper.W3WAutosuggestInputType) -> Swift.Bool
+  public typealias AllCases = [W3WKotlinSearchWrapper.W3WAutosuggestInputType]
+  nonisolated public static var allCases: [W3WKotlinSearchWrapper.W3WAutosuggestInputType] {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension W3WKotlinSearchWrapper.W3WAutosuggestInputType {
+  public func toKotlinEnum() -> W3WKotlinSearchWrapper.__W3WAutosuggestInputType
+}
+extension W3WKotlinSearchWrapper.__W3WAutosuggestInputType {
+  public func toSwiftEnum() -> W3WKotlinSearchWrapper.W3WAutosuggestInputType
+}
+@frozen public enum W3WVoiceDataSourceVersion : Swift.Hashable, Swift.CaseIterable, Swift._ObjectiveCBridgeable {
+  case library
+  case dataSource
+  public var name: Swift.String {
+    get
+  }
+  public var ordinal: Swift.Int32 {
+    get
+  }
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WVoiceDataSourceVersion, result: inout W3WKotlinSearchWrapper.W3WVoiceDataSourceVersion?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WVoiceDataSourceVersion, result: inout W3WKotlinSearchWrapper.W3WVoiceDataSourceVersion?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WVoiceDataSourceVersion?) -> W3WKotlinSearchWrapper.W3WVoiceDataSourceVersion
+  #endif
+  public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.__W3WVoiceDataSourceVersion
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.__W3WVoiceDataSourceVersion
+  public static func == (a: W3WKotlinSearchWrapper.W3WVoiceDataSourceVersion, b: W3WKotlinSearchWrapper.W3WVoiceDataSourceVersion) -> Swift.Bool
+  public typealias AllCases = [W3WKotlinSearchWrapper.W3WVoiceDataSourceVersion]
+  nonisolated public static var allCases: [W3WKotlinSearchWrapper.W3WVoiceDataSourceVersion] {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension W3WKotlinSearchWrapper.W3WVoiceDataSourceVersion {
+  public func toKotlinEnum() -> W3WKotlinSearchWrapper.__W3WVoiceDataSourceVersion
+}
+extension W3WKotlinSearchWrapper.__W3WVoiceDataSourceVersion {
+  public func toSwiftEnum() -> W3WKotlinSearchWrapper.W3WVoiceDataSourceVersion
+}
+@frozen public enum W3WRFC5646Language : Swift.Hashable, Swift.CaseIterable, Swift._ObjectiveCBridgeable {
+  case af
+  case am
+  case ar
+  case bg
+  case bn
+  case bsLatn
+  case bsCyrl
+  case ca
+  case cs
+  case cy
+  case da
+  case de
+  case el
+  case enAu
+  case enCa
+  case enGb
+  case enIn
+  case enUs
+  case esEs
+  case esMx
+  case et
+  case fa
+  case fi
+  case frCa
+  case frFr
+  case gu
+  case he
+  case hi
+  case hr
+  case hu
+  case id
+  case it
+  case ja
+  case kkCyrl
+  case kkLatn
+  case km
+  case kn
+  case ko
+  case lo
+  case ml
+  case mnCyrl
+  case mnLatn
+  case mr
+  case ms
+  case ne
+  case nl
+  case no
+  case or
+  case pa
+  case pl
+  case ptBr
+  case ptPt
+  case ro
+  case ru
+  case si
+  case sk
+  case sl
+  case srLatnRs
+  case srCyrlRs
+  case srLatnMe
+  case srCyrlMe
+  case sv
+  case sw
+  case ta
+  case te
+  case th
+  case tr
+  case uk
+  case ur
+  case vi
+  case xh
+  case zhHans
+  case zhHantHk
+  case zhHantTw
+  case zu
+  public var code: Swift.String {
+    get
+  }
+  public var name: Swift.String {
+    get
+  }
+  public var ordinal: Swift.Int32 {
+    get
+  }
+  public var w3wCode: Swift.String {
+    get
+  }
+  #if compiler(>=5.3) && $NonescapableTypes
+  public var w3wLocale: Swift.String? {
+    get
+  }
+  #endif
+  public static var companion: W3WKotlinSearchWrapper.__W3WRFC5646Language.Companion {
+    get
+  }
+  public func getLanguageCode() -> Swift.String
+  #if compiler(>=5.3) && $NonescapableTypes
+  public func getRegionCode() -> Swift.String?
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public func getScriptCode() -> Swift.String?
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WRFC5646Language, result: inout W3WKotlinSearchWrapper.W3WRFC5646Language?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WRFC5646Language, result: inout W3WKotlinSearchWrapper.W3WRFC5646Language?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WRFC5646Language?) -> W3WKotlinSearchWrapper.W3WRFC5646Language
+  #endif
+  public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.__W3WRFC5646Language
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.__W3WRFC5646Language
+  public typealias Companion = W3WKotlinSearchWrapper.__W3WRFC5646Language.Companion
+  public static func == (a: W3WKotlinSearchWrapper.W3WRFC5646Language, b: W3WKotlinSearchWrapper.W3WRFC5646Language) -> Swift.Bool
+  public typealias AllCases = [W3WKotlinSearchWrapper.W3WRFC5646Language]
+  nonisolated public static var allCases: [W3WKotlinSearchWrapper.W3WRFC5646Language] {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension W3WKotlinSearchWrapper.W3WRFC5646Language {
+  public func toKotlinEnum() -> W3WKotlinSearchWrapper.__W3WRFC5646Language
+}
+extension W3WKotlinSearchWrapper.__W3WRFC5646Language {
+  public func toSwiftEnum() -> W3WKotlinSearchWrapper.W3WRFC5646Language
+}
+@frozen public enum W3WAudioStreamState : Swift.Hashable, Swift.CaseIterable, Swift._ObjectiveCBridgeable {
+  case listening
+  case stopped
+  public var name: Swift.String {
+    get
+  }
+  public var ordinal: Swift.Int32 {
+    get
+  }
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WAudioStreamState, result: inout W3WKotlinSearchWrapper.W3WAudioStreamState?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WAudioStreamState, result: inout W3WKotlinSearchWrapper.W3WAudioStreamState?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WAudioStreamState?) -> W3WKotlinSearchWrapper.W3WAudioStreamState
+  #endif
+  public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.__W3WAudioStreamState
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.__W3WAudioStreamState
+  public static func == (a: W3WKotlinSearchWrapper.W3WAudioStreamState, b: W3WKotlinSearchWrapper.W3WAudioStreamState) -> Swift.Bool
+  public typealias AllCases = [W3WKotlinSearchWrapper.W3WAudioStreamState]
+  nonisolated public static var allCases: [W3WKotlinSearchWrapper.W3WAudioStreamState] {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension W3WKotlinSearchWrapper.W3WAudioStreamState {
+  public func toKotlinEnum() -> W3WKotlinSearchWrapper.__W3WAudioStreamState
+}
+extension W3WKotlinSearchWrapper.__W3WAudioStreamState {
+  public func toSwiftEnum() -> W3WKotlinSearchWrapper.W3WAudioStreamState
+}
+@frozen public enum W3WIOSAudioStreamEncoding : Swift.Hashable, Swift.CaseIterable, Swift._ObjectiveCBridgeable {
+  case pcmF32Le
+  case pcmS16Le
+  public var name: Swift.String {
+    get
+  }
+  public var ordinal: Swift.Int32 {
+    get
+  }
+  public var value: Any {
+    get
+  }
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _forceBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WIOSAudioStreamEncoding, result: inout W3WKotlinSearchWrapper.W3WIOSAudioStreamEncoding?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _conditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WIOSAudioStreamEncoding, result: inout W3WKotlinSearchWrapper.W3WIOSAudioStreamEncoding?) -> Swift.Bool
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  public static func _unconditionallyBridgeFromObjectiveC(_ source: W3WKotlinSearchWrapper.__W3WIOSAudioStreamEncoding?) -> W3WKotlinSearchWrapper.W3WIOSAudioStreamEncoding
+  #endif
+  public func _bridgeToObjectiveC() -> W3WKotlinSearchWrapper.__W3WIOSAudioStreamEncoding
+  public typealias _ObjectiveCType = W3WKotlinSearchWrapper.__W3WIOSAudioStreamEncoding
+  public static func == (a: W3WKotlinSearchWrapper.W3WIOSAudioStreamEncoding, b: W3WKotlinSearchWrapper.W3WIOSAudioStreamEncoding) -> Swift.Bool
+  public typealias AllCases = [W3WKotlinSearchWrapper.W3WIOSAudioStreamEncoding]
+  nonisolated public static var allCases: [W3WKotlinSearchWrapper.W3WIOSAudioStreamEncoding] {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension W3WKotlinSearchWrapper.W3WIOSAudioStreamEncoding {
+  public func toKotlinEnum() -> W3WKotlinSearchWrapper.__W3WIOSAudioStreamEncoding
+}
+extension W3WKotlinSearchWrapper.__W3WIOSAudioStreamEncoding {
+  public func toSwiftEnum() -> W3WKotlinSearchWrapper.W3WIOSAudioStreamEncoding
+}
+extension W3WKotlinSearchWrapper.Skie.Lib.W3WLanguage {
+  @frozen public enum __Sealed : Swift.Hashable {
+    case w3WProprietaryLanguage(W3WKotlinSearchWrapper.W3WProprietaryLanguage)
+    case w3WRFC5646Language(W3WKotlinSearchWrapper.W3WRFC5646Language)
+    public static func == (a: W3WKotlinSearchWrapper.Skie.Lib.W3WLanguage.__Sealed, b: W3WKotlinSearchWrapper.Skie.Lib.W3WLanguage.__Sealed) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+public func onEnum<__Sealed>(of sealed: __Sealed) -> W3WKotlinSearchWrapper.Skie.Lib.W3WLanguage.__Sealed where __Sealed : W3WKotlinSearchWrapper.W3WLanguage
+#if compiler(>=5.3) && $NonescapableTypes
+@_disfavoredOverload public func onEnum<__Sealed>(of sealed: __Sealed?) -> W3WKotlinSearchWrapper.Skie.Lib.W3WLanguage.__Sealed? where __Sealed : W3WKotlinSearchWrapper.W3WLanguage
+#endif
+extension W3WKotlinSearchWrapper.Skie.Lib.W3WResult {
+  @frozen public enum __Sealed<T> : Swift.Hashable where T : AnyObject {
+    case failure(W3WKotlinSearchWrapper.W3WResultFailure<T>)
+    case success(W3WKotlinSearchWrapper.W3WResultSuccess<T>)
+    public static func == (a: W3WKotlinSearchWrapper.Skie.Lib.W3WResult.__Sealed<T>, b: W3WKotlinSearchWrapper.Skie.Lib.W3WResult.__Sealed<T>) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+public func onEnum<T, __Sealed>(of sealed: __Sealed) -> W3WKotlinSearchWrapper.Skie.Lib.W3WResult.__Sealed<T> where T : AnyObject, __Sealed : W3WKotlinSearchWrapper.W3WResult<T>
+#if compiler(>=5.3) && $NonescapableTypes
+@_disfavoredOverload public func onEnum<T, __Sealed>(of sealed: __Sealed?) -> W3WKotlinSearchWrapper.Skie.Lib.W3WResult.__Sealed<T>? where T : AnyObject, __Sealed : W3WKotlinSearchWrapper.W3WResult<T>
+#endif
+extension W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.SerialKind {
+  @frozen public enum __Sealed : Swift.Hashable {
+    case polymorphicKind(W3WKotlinSearchWrapper.Kotlinx_serialization_corePolymorphicKind)
+    case primitiveKind(W3WKotlinSearchWrapper.Kotlinx_serialization_corePrimitiveKind)
+    case cONTEXTUAL(W3WKotlinSearchWrapper.Kotlinx_serialization_coreSerialKind.CONTEXTUAL)
+    case eNUM(W3WKotlinSearchWrapper.Kotlinx_serialization_coreSerialKind.ENUM)
+    case structureKind(W3WKotlinSearchWrapper.Kotlinx_serialization_coreStructureKind)
+    public static func == (a: W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.SerialKind.__Sealed, b: W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.SerialKind.__Sealed) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+public func onEnum<__Sealed>(of sealed: __Sealed) -> W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.SerialKind.__Sealed where __Sealed : W3WKotlinSearchWrapper.Kotlinx_serialization_coreSerialKind
+#if compiler(>=5.3) && $NonescapableTypes
+@_disfavoredOverload public func onEnum<__Sealed>(of sealed: __Sealed?) -> W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.SerialKind.__Sealed? where __Sealed : W3WKotlinSearchWrapper.Kotlinx_serialization_coreSerialKind
+#endif
+extension W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.SerializersModule {
+  @frozen public enum __Sealed : Swift.Hashable {
+    case `else`
+    public static func == (a: W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.SerializersModule.__Sealed, b: W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.SerializersModule.__Sealed) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+public func onEnum<__Sealed>(of sealed: __Sealed) -> W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.SerializersModule.__Sealed where __Sealed : W3WKotlinSearchWrapper.Kotlinx_serialization_coreSerializersModule
+#if compiler(>=5.3) && $NonescapableTypes
+@_disfavoredOverload public func onEnum<__Sealed>(of sealed: __Sealed?) -> W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.SerializersModule.__Sealed? where __Sealed : W3WKotlinSearchWrapper.Kotlinx_serialization_coreSerializersModule
+#endif
+extension W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.PolymorphicKind {
+  @frozen public enum __Sealed : Swift.Hashable {
+    case oPEN(W3WKotlinSearchWrapper.Kotlinx_serialization_corePolymorphicKind.OPEN)
+    case sEALED(W3WKotlinSearchWrapper.Kotlinx_serialization_corePolymorphicKind.SEALED)
+    public static func == (a: W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.PolymorphicKind.__Sealed, b: W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.PolymorphicKind.__Sealed) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+public func onEnum<__Sealed>(of sealed: __Sealed) -> W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.PolymorphicKind.__Sealed where __Sealed : W3WKotlinSearchWrapper.Kotlinx_serialization_corePolymorphicKind
+#if compiler(>=5.3) && $NonescapableTypes
+@_disfavoredOverload public func onEnum<__Sealed>(of sealed: __Sealed?) -> W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.PolymorphicKind.__Sealed? where __Sealed : W3WKotlinSearchWrapper.Kotlinx_serialization_corePolymorphicKind
+#endif
+extension W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.PrimitiveKind {
+  @frozen public enum __Sealed : Swift.Hashable {
+    case bOOLEAN(W3WKotlinSearchWrapper.Kotlinx_serialization_corePrimitiveKind.BOOLEAN)
+    case bYTE(W3WKotlinSearchWrapper.Kotlinx_serialization_corePrimitiveKind.BYTE)
+    case cHAR(W3WKotlinSearchWrapper.Kotlinx_serialization_corePrimitiveKind.CHAR)
+    case dOUBLE(W3WKotlinSearchWrapper.Kotlinx_serialization_corePrimitiveKind.DOUBLE)
+    case fLOAT(W3WKotlinSearchWrapper.Kotlinx_serialization_corePrimitiveKind.FLOAT)
+    case iNT(W3WKotlinSearchWrapper.Kotlinx_serialization_corePrimitiveKind.INT)
+    case lONG(W3WKotlinSearchWrapper.Kotlinx_serialization_corePrimitiveKind.LONG)
+    case sHORT(W3WKotlinSearchWrapper.Kotlinx_serialization_corePrimitiveKind.SHORT)
+    case sTRING(W3WKotlinSearchWrapper.Kotlinx_serialization_corePrimitiveKind.STRING)
+    public static func == (a: W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.PrimitiveKind.__Sealed, b: W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.PrimitiveKind.__Sealed) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+public func onEnum<__Sealed>(of sealed: __Sealed) -> W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.PrimitiveKind.__Sealed where __Sealed : W3WKotlinSearchWrapper.Kotlinx_serialization_corePrimitiveKind
+#if compiler(>=5.3) && $NonescapableTypes
+@_disfavoredOverload public func onEnum<__Sealed>(of sealed: __Sealed?) -> W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.PrimitiveKind.__Sealed? where __Sealed : W3WKotlinSearchWrapper.Kotlinx_serialization_corePrimitiveKind
+#endif
+extension W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.StructureKind {
+  @frozen public enum __Sealed : Swift.Hashable {
+    case cLASS(W3WKotlinSearchWrapper.Kotlinx_serialization_coreStructureKind.CLASS)
+    case lIST(W3WKotlinSearchWrapper.Kotlinx_serialization_coreStructureKind.LIST)
+    case mAP(W3WKotlinSearchWrapper.Kotlinx_serialization_coreStructureKind.MAP)
+    case oBJECT(W3WKotlinSearchWrapper.Kotlinx_serialization_coreStructureKind.OBJECT)
+    public static func == (a: W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.StructureKind.__Sealed, b: W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.StructureKind.__Sealed) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+public func onEnum<__Sealed>(of sealed: __Sealed) -> W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.StructureKind.__Sealed where __Sealed : W3WKotlinSearchWrapper.Kotlinx_serialization_coreStructureKind
+#if compiler(>=5.3) && $NonescapableTypes
+@_disfavoredOverload public func onEnum<__Sealed>(of sealed: __Sealed?) -> W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.StructureKind.__Sealed? where __Sealed : W3WKotlinSearchWrapper.Kotlinx_serialization_coreStructureKind
+#endif
+extension W3WKotlinSearchWrapper.Skie.RuntimeKotlin.Skie_SuspendResult {
+  @frozen public enum __Sealed : Swift.Hashable {
+    case canceled(W3WKotlinSearchWrapper.Skie_SuspendResult.Canceled)
+    case error(W3WKotlinSearchWrapper.Skie_SuspendResult.Error)
+    case success(W3WKotlinSearchWrapper.Skie_SuspendResult.Success)
+    public static func == (a: W3WKotlinSearchWrapper.Skie.RuntimeKotlin.Skie_SuspendResult.__Sealed, b: W3WKotlinSearchWrapper.Skie.RuntimeKotlin.Skie_SuspendResult.__Sealed) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+public func onEnum<__Sealed>(of sealed: __Sealed) -> W3WKotlinSearchWrapper.Skie.RuntimeKotlin.Skie_SuspendResult.__Sealed where __Sealed : W3WKotlinSearchWrapper.Skie_SuspendResult
+#if compiler(>=5.3) && $NonescapableTypes
+@_disfavoredOverload public func onEnum<__Sealed>(of sealed: __Sealed?) -> W3WKotlinSearchWrapper.Skie.RuntimeKotlin.Skie_SuspendResult.__Sealed? where __Sealed : W3WKotlinSearchWrapper.Skie_SuspendResult
+#endif
+extension W3WKotlinSearchWrapper.Skie.Shared.SearchResult {
+  @frozen public enum __Sealed : Swift.Hashable {
+    case resolvedAddress(W3WKotlinSearchWrapper.SearchResult.ResolvedAddress)
+    case searchSuggestion(W3WKotlinSearchWrapper.SearchResult.SearchSuggestion)
+    public static func == (a: W3WKotlinSearchWrapper.Skie.Shared.SearchResult.__Sealed, b: W3WKotlinSearchWrapper.Skie.Shared.SearchResult.__Sealed) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+public func onEnum<__Sealed>(of sealed: __Sealed) -> W3WKotlinSearchWrapper.Skie.Shared.SearchResult.__Sealed where __Sealed : W3WKotlinSearchWrapper.SearchResult
+#if compiler(>=5.3) && $NonescapableTypes
+@_disfavoredOverload public func onEnum<__Sealed>(of sealed: __Sealed?) -> W3WKotlinSearchWrapper.Skie.Shared.SearchResult.__Sealed? where __Sealed : W3WKotlinSearchWrapper.SearchResult
+#endif
+extension W3WKotlinSearchWrapper.Skie.Shared.LocationBias {
+  @frozen public enum __Sealed : Swift.Hashable {
+    case circle(W3WKotlinSearchWrapper.LocationBias.Circle)
+    case rectangle(W3WKotlinSearchWrapper.LocationBias.Rectangle)
+    public static func == (a: W3WKotlinSearchWrapper.Skie.Shared.LocationBias.__Sealed, b: W3WKotlinSearchWrapper.Skie.Shared.LocationBias.__Sealed) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+public func onEnum<__Sealed>(of sealed: __Sealed) -> W3WKotlinSearchWrapper.Skie.Shared.LocationBias.__Sealed where __Sealed : W3WKotlinSearchWrapper.LocationBias
+#if compiler(>=5.3) && $NonescapableTypes
+@_disfavoredOverload public func onEnum<__Sealed>(of sealed: __Sealed?) -> W3WKotlinSearchWrapper.Skie.Shared.LocationBias.__Sealed? where __Sealed : W3WKotlinSearchWrapper.LocationBias
+#endif
+public var BRITISH_NATIONAL_GRID_PROVIDER_ID: Swift.String {
+  get
+}
+public var COORDINATES_PROVIDER_ID: Swift.String {
+  get
+}
+public var GOOGLE_PLACES_PROVIDER_ID: Swift.String {
+  get
+}
+public var MAY_BE_THREE_WORD_ADDRESS_PROVIDER_ID: Swift.String {
+  get
+}
+public var THREE_WORD_ADDRESS_PROVIDER_ID: Swift.String {
+  get
+}
+extension W3WKotlinSearchWrapper.W3WTextDataSourceVersion : Swift.Sendable {}
+extension W3WKotlinSearchWrapper.W3WTextDataSourceVersion : Swift.BitwiseCopyable {}
+extension W3WKotlinSearchWrapper.W3WAutosuggestInputType : Swift.Sendable {}
+extension W3WKotlinSearchWrapper.W3WAutosuggestInputType : Swift.BitwiseCopyable {}
+extension W3WKotlinSearchWrapper.W3WVoiceDataSourceVersion : Swift.Sendable {}
+extension W3WKotlinSearchWrapper.W3WVoiceDataSourceVersion : Swift.BitwiseCopyable {}
+extension W3WKotlinSearchWrapper.W3WRFC5646Language : Swift.Sendable {}
+extension W3WKotlinSearchWrapper.W3WRFC5646Language : Swift.BitwiseCopyable {}
+extension W3WKotlinSearchWrapper.W3WAudioStreamState : Swift.Sendable {}
+extension W3WKotlinSearchWrapper.W3WAudioStreamState : Swift.BitwiseCopyable {}
+extension W3WKotlinSearchWrapper.W3WIOSAudioStreamEncoding : Swift.Sendable {}
+extension W3WKotlinSearchWrapper.W3WIOSAudioStreamEncoding : Swift.BitwiseCopyable {}
+extension W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.SerializersModule.__Sealed : Swift.Sendable {}
+extension W3WKotlinSearchWrapper.Skie.KotlinxSerializationCore.SerializersModule.__Sealed : Swift.BitwiseCopyable {}
