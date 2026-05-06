@@ -14,6 +14,7 @@ import com.what3words.search.wrapper.coordinates.helper.parseDdmCoordinates
 import com.what3words.search.wrapper.coordinates.helper.parseDmsCoordinates
 import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SearchResult
+import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.InvalidCoordinatesException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -51,28 +52,29 @@ internal class CoordinatesSearchProvider(
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> = withContext(
         Dispatchers.IO
     ) {
-        val coordinates = when {
-            config.enableDMS && query.isDmsPattern() -> parseDmsCoordinates(query)
-            config.enableDDM && query.isDdmPattern() -> parseDdmCoordinates(query)
-            config.enableDecimal && query.isDdPattern() -> parseDdCoordinates(query)
-            config.enableDecimal && query.isDdSuffixPattern() -> parseDdSuffixCoordinates(query)
-            config.enableDecimal && query.isDdPrefixPattern() -> parseDdPrefixCoordinates(query)
-            else -> null
-        } ?: return@withContext W3WResult.Failure(InvalidCoordinatesException())
+        safeW3WCall {
+            val coordinates = when {
+                config.enableDMS && query.isDmsPattern() -> parseDmsCoordinates(query)
+                config.enableDDM && query.isDdmPattern() -> parseDdmCoordinates(query)
+                config.enableDecimal && query.isDdPattern() -> parseDdCoordinates(query)
+                config.enableDecimal && query.isDdSuffixPattern() -> parseDdSuffixCoordinates(query)
+                config.enableDecimal && query.isDdPrefixPattern() -> parseDdPrefixCoordinates(query)
+                else -> null
+            } ?: return@safeW3WCall W3WResult.Failure(InvalidCoordinatesException())
 
-        return@withContext when (val result =
-            textDataSource.convertTo3wa(coordinates, config.language)) {
-            is W3WResult.Success -> W3WResult.Success(
-                listOf(
-                    SearchResult.ResolvedAddress(
-                        query,
-                        providerId,
-                        result.value
+            when (val result = textDataSource.convertTo3wa(coordinates, config.language)) {
+                is W3WResult.Success -> W3WResult.Success(
+                    listOf(
+                        SearchResult.ResolvedAddress(
+                            query,
+                            providerId,
+                            result.value
+                        )
                     )
                 )
-            )
 
-            is W3WResult.Failure -> W3WResult.Failure(result.error)
+                is W3WResult.Failure -> W3WResult.Failure(result.error)
+            }
         }
     }
 

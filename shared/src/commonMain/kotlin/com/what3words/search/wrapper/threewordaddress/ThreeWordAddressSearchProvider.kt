@@ -8,6 +8,7 @@ import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DIST
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_RANK
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
+import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.MissingSuggestionTitleException
 import com.what3words.search.wrapper.threewordaddress.helper.isA3WordAddress
 import com.what3words.search.wrapper.threewordaddress.helper.normalizeToCanonicalForm
@@ -35,67 +36,69 @@ internal class ThreeWordAddressSearchProvider(
 
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
-            val canonicalQuery = query.normalizeToCanonicalForm()
-            when (val result = textDataSource.autosuggest(canonicalQuery, autosuggestOptions)) {
-                is W3WResult.Success -> W3WResult.Success(
-                    result.value.map { suggestion ->
-                        if (suggestion.w3wAddress.center != null) {
-                            SearchResult.ResolvedAddress(
-                                query = canonicalQuery,
-                                providerId = providerId,
-                                address = suggestion.w3wAddress,
-                                extras = buildMap {
-                                    put(EXTRAS_KEY_RANK, suggestion.rank.toString())
-                                    suggestion.distanceToFocus?.let {
-                                        put(
-                                            EXTRAS_KEY_DISTANCE_TO_FOCUS,
-                                            it.distance.toString()
-                                        )
-                                    }
-                                },
-                            )
-                        } else {
-                            SearchResult.SearchSuggestion(
-                                query = canonicalQuery,
-                                providerId = providerId,
-                                extras = buildMap {
-                                    put(EXTRAS_KEY_RANK, suggestion.rank.toString())
-                                    suggestion.distanceToFocus?.let {
-                                        put(
-                                            EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString()
-                                        )
-                                    }
-                                    put(EXTRAS_KEY_TITLE, suggestion.w3wAddress.words)
-                                    suggestion.w3wAddress.nearestPlace
-                                        .takeIf { it.isNotEmpty() }
-                                        ?.let { put(EXTRAS_KEY_SUBTITLE, it) }
-                                },
-                            )
-                        }
-                    },
-                )
+            safeW3WCall {
+                val canonicalQuery = query.normalizeToCanonicalForm()
+                when (val result = textDataSource.autosuggest(canonicalQuery, autosuggestOptions)) {
+                    is W3WResult.Success -> W3WResult.Success(
+                        result.value.map { suggestion ->
+                            if (suggestion.w3wAddress.center != null) {
+                                SearchResult.ResolvedAddress(
+                                    query = canonicalQuery,
+                                    providerId = providerId,
+                                    address = suggestion.w3wAddress,
+                                    extras = buildMap {
+                                        put(EXTRAS_KEY_RANK, suggestion.rank.toString())
+                                        suggestion.distanceToFocus?.let {
+                                            put(
+                                                EXTRAS_KEY_DISTANCE_TO_FOCUS,
+                                                it.distance.toString()
+                                            )
+                                        }
+                                    },
+                                )
+                            } else {
+                                SearchResult.SearchSuggestion(
+                                    query = canonicalQuery,
+                                    providerId = providerId,
+                                    extras = buildMap {
+                                        put(EXTRAS_KEY_RANK, suggestion.rank.toString())
+                                        suggestion.distanceToFocus?.let {
+                                            put(
+                                                EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString()
+                                            )
+                                        }
+                                        put(EXTRAS_KEY_TITLE, suggestion.w3wAddress.words)
+                                        suggestion.w3wAddress.nearestPlace
+                                            .takeIf { it.isNotEmpty() }
+                                            ?.let { put(EXTRAS_KEY_SUBTITLE, it) }
+                                    },
+                                )
+                            }
+                        },
+                    )
 
-                is W3WResult.Failure -> W3WResult.Failure(result.error)
+                    is W3WResult.Failure -> W3WResult.Failure(result.error)
+                }
             }
         }
 
     override suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> =
-        withContext(
-            Dispatchers.IO
-        ) {
-            val w3WAddress = data.extras[EXTRAS_KEY_TITLE] ?: return@withContext W3WResult.Failure(
-                MissingSuggestionTitleException()
-            )
-            when (val result = textDataSource.convertToCoordinates(w3WAddress)) {
-                is W3WResult.Success -> W3WResult.Success(
-                    SearchResult.ResolvedAddress(
-                        query = w3WAddress,
-                        providerId = providerId,
-                        address = result.value
-                    )
-                )
+        withContext(Dispatchers.IO) {
+            safeW3WCall {
+                val w3WAddress = data.extras[EXTRAS_KEY_TITLE]
+                    ?: return@safeW3WCall W3WResult.Failure(MissingSuggestionTitleException())
 
-                is W3WResult.Failure -> W3WResult.Failure(result.error)
+                when (val result = textDataSource.convertToCoordinates(w3WAddress)) {
+                    is W3WResult.Success -> W3WResult.Success(
+                        SearchResult.ResolvedAddress(
+                            query = w3WAddress,
+                            providerId = providerId,
+                            address = result.value
+                        )
+                    )
+
+                    is W3WResult.Failure -> W3WResult.Failure(result.error)
+                }
             }
         }
 }
