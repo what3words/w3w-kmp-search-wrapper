@@ -6,6 +6,7 @@ import com.what3words.search.wrapper.bng.helper.UKNationalGridTransformer
 import com.what3words.search.wrapper.bng.helper.UKNationalGridTransformer.isOSGrid
 import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SearchResult
+import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.InvalidCoordinatesException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -41,23 +42,24 @@ internal class BritishNationalGridSearchProvider(
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> = withContext(
         Dispatchers.IO
     ) {
-        return@withContext UKNationalGridTransformer.getCoordinatesFromOSGrid(query)
-            ?.let { coordinates ->
-                when (val result = textDataSource.convertTo3wa(coordinates, config.language)) {
-                    is W3WResult.Success -> W3WResult.Success(
-                        listOf(
-                            SearchResult.ResolvedAddress(
-                                query,
-                                providerId,
-                                result.value
-                            )
+        safeW3WCall {
+            val coordinates = UKNationalGridTransformer.getCoordinatesFromOSGrid(query)
+                ?: return@safeW3WCall W3WResult.Failure(InvalidCoordinatesException())
+
+            when (val result = textDataSource.convertTo3wa(coordinates, config.language)) {
+                is W3WResult.Success -> W3WResult.Success(
+                    listOf(
+                        SearchResult.ResolvedAddress(
+                            query,
+                            providerId,
+                            result.value
                         )
                     )
+                )
 
-                    is W3WResult.Failure -> W3WResult.Failure(result.error)
-                }
-            } ?: W3WResult.Failure(InvalidCoordinatesException())
-
+                is W3WResult.Failure -> W3WResult.Failure(result.error)
+            }
+        }
     }
 
 }

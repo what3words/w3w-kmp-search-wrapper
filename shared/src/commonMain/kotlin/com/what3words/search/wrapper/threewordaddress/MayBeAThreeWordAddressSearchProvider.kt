@@ -8,6 +8,7 @@ import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DIST
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUGGESTED_ADDRESS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
+import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.InvalidQueryException
 import com.what3words.search.wrapper.threewordaddress.helper.lettersOnly
 import com.what3words.search.wrapper.threewordaddress.helper.mayBeA3WordAddress
@@ -37,35 +38,37 @@ internal class MayBeAThreeWordAddressSearchProvider(
 
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
-            val maybe3wa = query.mayBeA3WordAddress()
-                ?: return@withContext W3WResult.Failure(InvalidQueryException())
+            safeW3WCall {
+                val maybe3wa = query.mayBeA3WordAddress()
+                    ?: return@safeW3WCall W3WResult.Failure(InvalidQueryException())
 
-            when (val result = textDataSource.autosuggest(maybe3wa, autosuggestOptions)) {
-                is W3WResult.Failure -> W3WResult.Failure(result.error)
+                when (val result = textDataSource.autosuggest(maybe3wa, autosuggestOptions)) {
+                    is W3WResult.Failure -> W3WResult.Failure(result.error)
 
-                is W3WResult.Success -> {
-                    val firstSuggestion = result.value.firstOrNull()
-                        ?: return@withContext W3WResult.Success(emptyList())
+                    is W3WResult.Success -> {
+                        val firstSuggestion = result.value.firstOrNull()
+                            ?: return@safeW3WCall W3WResult.Success(emptyList())
 
-                    val suggestedAddress =
-                        "$THREE_WORD_ADDRESS_PREFIX${firstSuggestion.w3wAddress.words}"
-                    val isMatch = suggestedAddress.lettersOnly() == query.lettersOnly()
+                        val suggestedAddress =
+                            "$THREE_WORD_ADDRESS_PREFIX${firstSuggestion.w3wAddress.words}"
+                        val isMatch = suggestedAddress.lettersOnly() == query.lettersOnly()
 
-                    val suggestions = if (isMatch) {
-                        val extras = buildMap {
-                            put(EXTRAS_KEY_SUGGESTED_ADDRESS, suggestedAddress)
-                            put(EXTRAS_KEY_TITLE, firstSuggestion.w3wAddress.words)
-                            put(EXTRAS_KEY_SUBTITLE, firstSuggestion.w3wAddress.nearestPlace)
-                            firstSuggestion.distanceToFocus?.let {
-                                put(EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString())
+                        val suggestions = if (isMatch) {
+                            val extras = buildMap {
+                                put(EXTRAS_KEY_SUGGESTED_ADDRESS, suggestedAddress)
+                                put(EXTRAS_KEY_TITLE, firstSuggestion.w3wAddress.words)
+                                put(EXTRAS_KEY_SUBTITLE, firstSuggestion.w3wAddress.nearestPlace)
+                                firstSuggestion.distanceToFocus?.let {
+                                    put(EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString())
+                                }
                             }
+                            listOf(SearchResult.SearchSuggestion(query, providerId, extras))
+                        } else {
+                            emptyList()
                         }
-                        listOf(SearchResult.SearchSuggestion(query, providerId, extras))
-                    } else {
-                        emptyList()
-                    }
 
-                    return@withContext W3WResult.Success(suggestions)
+                        W3WResult.Success(suggestions)
+                    }
                 }
             }
         }

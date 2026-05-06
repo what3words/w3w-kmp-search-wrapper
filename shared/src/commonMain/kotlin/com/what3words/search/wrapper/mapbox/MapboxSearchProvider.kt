@@ -10,6 +10,7 @@ import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DIST
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.core.SessionManager
+import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.InvalidCoordinatesException
 import com.what3words.search.wrapper.error.MissingAddressIdException
 import io.ktor.client.HttpClient
@@ -56,7 +57,12 @@ internal class MapboxSearchProvider internal constructor(
     private val httpClient: HttpClient,
 ) : ResolvableSearchProvider {
 
-    private val sessionManager by lazy { SessionManager(maxSuggestCalls = 50, sessionTimeoutSeconds = 180) }
+    private val sessionManager by lazy {
+        SessionManager(
+            maxSuggestCalls = 50,
+            sessionTimeoutSeconds = 180
+        )
+    }
 
     constructor(config: MapboxConfig, textDataSource: W3WTextDataSource) : this(
         config = config,
@@ -84,7 +90,7 @@ internal class MapboxSearchProvider internal constructor(
      */
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
-            try {
+            safeW3WCall {
                 if (sessionManager.shouldRefresh()) sessionManager.refresh()
                 sessionManager.onSuggestCall()
                 val response = httpClient.get(BASE_URL) {
@@ -104,7 +110,7 @@ internal class MapboxSearchProvider internal constructor(
                 }
 
                 if (!response.status.isSuccess()) {
-                    return@withContext W3WResult.Failure(response.toMapboxApiError())
+                    return@safeW3WCall W3WResult.Failure(response.toMapboxApiError())
                 }
 
                 val results = response.body<MapboxSearchResponse>().suggestions
@@ -124,13 +130,16 @@ internal class MapboxSearchProvider internal constructor(
                                     suggestion.buildSubtitle() ?: suggestion.placeFormatted
                                 )
                                 put(EXTRAS_KEY_MAPBOX_ID, suggestion.mapboxId)
-                                suggestion.distance?.let { put(EXTRAS_KEY_DISTANCE_TO_FOCUS, it.toString()) }
+                                suggestion.distance?.let {
+                                    put(
+                                        EXTRAS_KEY_DISTANCE_TO_FOCUS,
+                                        it.toString()
+                                    )
+                                }
                             }
                         )
                     }
                 W3WResult.Success(results)
-            } catch (e: Exception) {
-                W3WResult.Failure(W3WError(e))
             }
         }
 
@@ -144,50 +153,48 @@ internal class MapboxSearchProvider internal constructor(
      */
     override suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> =
         withContext(Dispatchers.IO) {
-            val id = data.extras[EXTRAS_KEY_MAPBOX_ID] ?: return@withContext W3WResult.Failure(
-                MissingAddressIdException()
-            )
+            safeW3WCall {
+                val id = data.extras[EXTRAS_KEY_MAPBOX_ID]
+                    ?: return@safeW3WCall W3WResult.Failure(MissingAddressIdException())
 
-            try {
                 val response = httpClient.get(BASE_URL) {
                     url {
                         appendPathSegments(RETRIEVE_PATH, id)
                     }
                     parameter(PARAM_SESSION_TOKEN, sessionManager.sessionToken)
                     parameter(PARAM_ACCESS_TOKEN, config.apiKey)
-
                 }
                 if (!response.status.isSuccess()) {
-                    return@withContext W3WResult.Failure(response.toMapboxApiError())
+                    return@safeW3WCall W3WResult.Failure(response.toMapboxApiError())
                 }
 
                 sessionManager.refresh()
                 val feature = response.body<MapboxRetrieveResponse>().features.firstOrNull()
-                    ?: return@withContext W3WResult.Failure(W3WError("No features returned from retrieve endpoint"))
+                    ?: return@safeW3WCall W3WResult.Failure(
+                        W3WError("No features returned from retrieve endpoint")
+                    )
 
                 val coordinates = feature.geometry.coordinates
                 val lng = coordinates.getOrNull(0)
                 val lat = coordinates.getOrNull(1)
-                if (lng == null || lat == null) return@withContext W3WResult.Failure(InvalidCoordinatesException())
+                if (lng == null || lat == null) {
+                    return@safeW3WCall W3WResult.Failure(InvalidCoordinatesException())
+                }
 
                 when (val w3wResult = textDataSource.convertTo3wa(
                     coordinates = W3WCoordinates(lat = lat, lng = lng),
                     language = config.language,
                 )) {
-                    is W3WResult.Success -> {
-                        W3WResult.Success(
-                            SearchResult.ResolvedAddress(
-                                query = data.query,
-                                providerId = providerId,
-                                address = w3wResult.value,
-                            )
+                    is W3WResult.Success -> W3WResult.Success(
+                        SearchResult.ResolvedAddress(
+                            query = data.query,
+                            providerId = providerId,
+                            address = w3wResult.value,
                         )
-                    }
+                    )
 
                     is W3WResult.Failure -> W3WResult.Failure(w3wResult.error, w3wResult.message)
                 }
-            } catch (e: Exception) {
-                W3WResult.Failure(W3WError(e))
             }
         }
 }
