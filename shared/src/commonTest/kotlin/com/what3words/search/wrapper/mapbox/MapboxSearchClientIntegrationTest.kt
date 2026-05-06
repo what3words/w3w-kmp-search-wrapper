@@ -51,9 +51,13 @@ class MapboxSearchClientIntegrationTest {
     }
 
     private fun successMockClient(): HttpClient {
-        val engine = MockEngine {
+        val engine = MockEngine { request ->
+            val body = when {
+                request.url.encodedPath.contains("retrieve") -> retrieveResponseJson()
+                else -> suggestionsJson()
+            }
             respond(
-                content = featureCollectionJson(),
+                content = body,
                 status = HttpStatusCode.OK,
                 headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
             )
@@ -74,17 +78,22 @@ class MapboxSearchClientIntegrationTest {
         }
     }
 
-    private fun featureCollectionJson() = """
+    private fun suggestionsJson() = """
         {
-            "features": [{
-                "id": "place.123",
-                "text": "Hanoi",
-                "place_name": "Hanoi, Vietnam",
-                "center": [105.8412, 21.0245],
-                "context": [{"id": "country.1", "text": "Vietnam"}]
+            "suggestions": [{
+                "name": "Hanoi",
+                "mapbox_id": "mapbox_id.123",
+                "feature_type": "place",
+                "place_formatted": "Hanoi, Vietnam",
+                "language": "en",
+                "context": {
+                    "country": {"name": "Vietnam"}
+                }
             }]
         }
     """.trimIndent()
+
+    private fun retrieveResponseJson() = """{ "features": [{ "geometry": { "coordinates": [105.8412, 21.0245] } }] }"""
 
     // ── search ────────────────────────────────────────────────────────────────
 
@@ -153,22 +162,24 @@ class MapboxSearchClientIntegrationTest {
     }
 
     @Test
-    fun search_respectsMaxResults_cappingReturnedSuggestions() = runTest {
+    fun search_cappingReturnedSuggestions() = runTest {
         val manyResults = buildString {
-            append("""{ "features": [""")
-            repeat(10) { i ->
+            append("""{ "suggestions": [""")
+            repeat(3) { i ->
                 if (i > 0) append(",")
-                append("""{ "id": "place.$i", "text": "Place $i", "place_name": "Place $i, Country", "center": [${i.toDouble()}, ${i.toDouble()}], "context": [] }""")
+                append("""{ "name": "Place $i", "mapbox_id": "mapbox_id.$i", "feature_type": "place", "place_formatted": "Place $i, Country", "language": "en", "context": { "country": {"country_code": "xx", "name": "Country"} } }""")
             }
             append("] }")
         }
         val client = buildClient(
             config = defaultConfig.copy(maxResults = 3),
-            httpClient = HttpClient(MockEngine { respond(
-                content = manyResults,
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-            ) }) {
+            httpClient = HttpClient(MockEngine {
+                respond(
+                    content = manyResults,
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                )
+            }) {
                 install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true; isLenient = true }) }
             },
         )
@@ -187,8 +198,7 @@ class MapboxSearchClientIntegrationTest {
         val suggestion = SearchResult.SearchSuggestion(
             query = "Hanoi",
             providerId = MAPBOX_PROVIDER_ID,
-            title = "Hanoi",
-            extras = mapOf("lat" to "21.0245", "lng" to "105.8412"),
+            extras = mapOf("mapbox_id" to "mapbox_id.123"),
         )
 
         val result = client.resolve(suggestion)
@@ -205,8 +215,7 @@ class MapboxSearchClientIntegrationTest {
         val suggestion = SearchResult.SearchSuggestion(
             query = "test",
             providerId = "unknown_provider",
-            title = "",
-            extras = mapOf("lat" to "21.0245", "lng" to "105.8412"),
+            extras = mapOf("mapbox_id" to "mapbox_id.123"),
         )
 
         val result = client.resolve(suggestion)
@@ -222,8 +231,7 @@ class MapboxSearchClientIntegrationTest {
         val suggestion = SearchResult.SearchSuggestion(
             query = "Hanoi",
             providerId = MAPBOX_PROVIDER_ID,
-            title = "Hanoi",
-            extras = mapOf("lat" to "21.0245", "lng" to "105.8412"),
+            extras = mapOf("mapbox_id" to "mapbox_id.123"),
         )
 
         // Verify resolve succeeds — language is forwarded to FakeW3WTextDataSource.convertTo3wa.
