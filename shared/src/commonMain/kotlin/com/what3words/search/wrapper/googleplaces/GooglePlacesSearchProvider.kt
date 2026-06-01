@@ -9,6 +9,7 @@ import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_ZOOM_LEVEL
 import com.what3words.search.wrapper.core.SessionManager
 import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.MissingAddressIdException
@@ -49,7 +50,8 @@ private const val PLACE_DETAILS_FIELD_MASK = "id,displayName,formattedAddress,lo
 private const val AUTOCOMPLETE_FIELD_MASK =
     "suggestions.placePrediction.placeId," +
             "suggestions.placePrediction.structuredFormat.mainText.text," +
-            "suggestions.placePrediction.structuredFormat.secondaryText.text"
+            "suggestions.placePrediction.structuredFormat.secondaryText.text," +
+            "suggestions.placePrediction.types"
 private const val EXTRAS_KEY_PLACE_ID = "placeId"
 private const val QUERY_PARAM_SESSION_TOKEN = "sessionToken"
 
@@ -171,6 +173,10 @@ internal class GooglePlacesSearchProvider internal constructor(
                                         it.toString()
                                     )
                                 }
+                                put(
+                                    EXTRAS_KEY_ZOOM_LEVEL,
+                                    zoomLevelForTypes(prediction.types).toString()
+                                )
                             }
                         )
                     }
@@ -235,6 +241,41 @@ internal class GooglePlacesSearchProvider internal constructor(
             }
         }
 }
+
+private const val ZOOM_DEFAULT = 14
+
+/** Recommended map zoom level per Google Places `type`. */
+private val TYPE_TO_ZOOM: Map<String, Int> = mapOf(
+    "street_address" to 19,
+    "route" to 19,
+    "intersection" to 18,
+    "political" to 6,
+    "country" to 6,
+    "administrative_area_level_1" to 6,
+    "administrative_area_level_2" to 12,
+    "administrative_area_level_3" to 16,
+    "administrative_area_level_4" to 16,
+    "administrative_area_level_5" to 16,
+    "colloquial_area" to 16,
+    "locality" to 15,
+    "sublocality" to 16,
+    "neighborhood" to 15,
+    "premise" to 19,
+    "subpremise" to 18,
+    "postal_code" to 19,
+    "natural_feature" to 17,
+    "airport" to 17,
+    "park" to 16,
+    "point_of_interest" to 16,
+    "establishment" to 16,
+)
+
+/**
+ * Returns the most specific (highest) zoom level among the supplied place [types],
+ * falling back to [ZOOM_DEFAULT] when no type is recognized.
+ */
+private fun zoomLevelForTypes(types: List<String>): Int =
+    types.mapNotNull { TYPE_TO_ZOOM[it] }.maxOrNull() ?: ZOOM_DEFAULT
 
 /** Converts a public [LocationBias] to the internal serializable [LocationBiasRequest]. */
 private fun LocationBias.toLocationBiasRequest(): LocationBiasRequest = when (this) {

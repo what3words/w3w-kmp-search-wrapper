@@ -21,6 +21,7 @@ internal data class PlacePrediction(
     val structuredFormat: StructuredFormat? = null,
     @SerialName("distanceMeters")
     val distanceToOrigin: Double? = null,
+    val types: List<String> = emptyList(),
 )
 
 @Serializable

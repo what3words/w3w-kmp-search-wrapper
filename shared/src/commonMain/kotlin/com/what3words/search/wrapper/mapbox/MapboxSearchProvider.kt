@@ -9,6 +9,7 @@ import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_ZOOM_LEVEL
 import com.what3words.search.wrapper.core.SessionManager
 import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.InvalidCoordinatesException
@@ -136,6 +137,10 @@ internal class MapboxSearchProvider internal constructor(
                                         it.toString()
                                     )
                                 }
+                                put(
+                                    EXTRAS_KEY_ZOOM_LEVEL,
+                                    zoomLevelForFeatureType(suggestion.featureType).toString()
+                                )
                             }
                         )
                     }
@@ -214,6 +219,30 @@ internal class MapboxSearchProvider internal constructor(
  *
  * @return The joined subtitle, or `null` if no components are available.
  */
+private const val ZOOM_DEFAULT = 14
+
+/**
+ * Recommended map zoom level per Mapbox `feature_type`, aligned with the geographic
+ * granularity scale used by other providers (country = wide, address = tight).
+ */
+private val FEATURE_TYPE_TO_ZOOM: Map<String, Int> = mapOf(
+    "country" to 6,
+    "region" to 6,
+    "district" to 12,
+    "postcode" to 19,
+    "place" to 15,
+    "locality" to 15,
+    "neighborhood" to 15,
+    "street" to 19,
+    "address" to 19,
+    "poi" to 16,
+    "category" to 16,
+)
+
+/** Returns the recommended zoom level for the given Mapbox [featureType]. */
+private fun zoomLevelForFeatureType(featureType: String): Int =
+    FEATURE_TYPE_TO_ZOOM[featureType] ?: ZOOM_DEFAULT
+
 private fun Suggestion.buildSubtitle(): String? {
     val address = when (featureType) {
         "address" -> null
