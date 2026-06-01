@@ -19,6 +19,8 @@ import kotlinx.coroutines.withContext
 /** Unique identifier for the three-word address search provider. */
 const val THREE_WORD_ADDRESS_PROVIDER_ID = "ThreeWordAddressSearchProvider"
 
+private const val THREE_WORD_ADDRESS_PREFIX = "///"
+
 /**
  * Search provider for three-word address queries.
  */
@@ -32,12 +34,14 @@ internal class ThreeWordAddressSearchProvider(
     private val allowSpaceSeparator = config.allowSpaceSeparator
     private val autosuggestOptions = config.toAutosuggestOptions()
 
-    override fun canHandle(query: String): Boolean = query.isA3WordAddress(allowSpaceSeparator)
+    override fun canHandle(query: String): Boolean =
+        query.startsWith(THREE_WORD_ADDRESS_PREFIX) || query.isA3WordAddress(allowSpaceSeparator)
 
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
             safeW3WCall {
-                val canonicalQuery = query.normalizeToCanonicalForm()
+                val strippedQuery = query.removePrefix(THREE_WORD_ADDRESS_PREFIX)
+                val canonicalQuery = strippedQuery.normalizeToCanonicalForm()
                 when (val result = textDataSource.autosuggest(canonicalQuery, autosuggestOptions)) {
                     is W3WResult.Success -> W3WResult.Success(
                         result.value.map { suggestion ->
