@@ -60,6 +60,9 @@ sealed class SearchResult(
 
         /** Extras key for the distance (kilometers) from the suggestion to the focus coordinates. */
         const val EXTRAS_KEY_DISTANCE_TO_FOCUS = "distanceToFocus"
+
+        /** Extras key for the recommended map zoom level based on the suggestion's geographic granularity. */
+        const val EXTRAS_KEY_ZOOM_LEVEL = "zoomLevel"
     }
 
     /**
@@ -83,4 +86,10 @@ sealed class SearchResult(
                 is SearchSuggestion -> extras[EXTRAS_KEY_SUBTITLE]
             }
         }
+
+    /**
+     * The recommended map zoom level for this result, when the provider supplies one.
+     */
+    val zoomLevel: Int?
+        get() = extras[EXTRAS_KEY_ZOOM_LEVEL]?.toIntOrNull()
 }
