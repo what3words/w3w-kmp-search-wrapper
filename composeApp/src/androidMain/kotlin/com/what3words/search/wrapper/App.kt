@@ -108,7 +108,7 @@ fun App(viewModel: SearchViewModel) {
                     shape = MaterialTheme.shapes.large,
                 )
 
-                // ── Clip-to-UK toggle ─────────────────────────────────────────
+                // ── Clip-to-VN toggle ─────────────────────────────────────────
                 // Demonstrates mutating ThreeWordAddressSearchConfig.clippedCountries
                 // at runtime without rebuilding the W3WSearchClient.
                 Row(
