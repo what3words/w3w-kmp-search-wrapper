@@ -44,10 +44,11 @@ internal class BritishNationalGridSearchProvider(
         Dispatchers.IO
     ) {
         safeW3WCall {
+            val snapshot = config
             val coordinates = UKNationalGridTransformer.getCoordinatesFromOSGrid(query)
                 ?: return@safeW3WCall W3WResult.Failure(InvalidCoordinatesException())
 
-            when (val result = textDataSource.convertTo3wa(coordinates, config.language)) {
+            when (val result = textDataSource.convertTo3wa(coordinates, snapshot.language)) {
                 is W3WResult.Success -> W3WResult.Success(
                     listOf(
                         SearchResult.ResolvedAddress(

@@ -19,13 +19,18 @@ object MayBeAThreeWordAddressSearch :
 
 /**
  * The live [MayBeAThreeWordAddressSearchConfig] for the installed provider, or `null` if
- * [MayBeAThreeWordAddressSearch] was not installed. Field mutations take effect on the next search.
+ * [MayBeAThreeWordAddressSearch] was not installed.
+ *
+ * Field mutations take effect on the next search. Assigning a non-null value replaces the
+ * config; assignment is a no-op if the plugin is not installed. Assigning `null` throws
+ * [IllegalArgumentException] — the property is nullable only on read.
  */
 var W3WSearchClient.mayBeAThreeWordAddressConfig: MayBeAThreeWordAddressSearchConfig?
     get() = config.providers.filterIsInstance<MayBeAThreeWordAddressSearchProvider>()
         .firstOrNull()?.config
     set(value) {
+        requireNotNull(value) { "mayBeAThreeWordAddressConfig cannot be set to null" }
         val provider = config.providers.filterIsInstance<MayBeAThreeWordAddressSearchProvider>()
             .firstOrNull() ?: return
-        if (value != null) provider.config = value
+        provider.config = value
     }

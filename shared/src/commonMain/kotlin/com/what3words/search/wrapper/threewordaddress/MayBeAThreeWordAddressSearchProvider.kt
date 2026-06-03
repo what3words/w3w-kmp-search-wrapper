@@ -38,7 +38,8 @@ internal class MayBeAThreeWordAddressSearchProvider(
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
             safeW3WCall {
-                val autosuggestOptions = config.toAutosuggestOptions()
+                val snapshot = config
+                val autosuggestOptions = snapshot.toAutosuggestOptions()
                 val maybe3wa = query.mayBeA3WordAddress()
                     ?: return@safeW3WCall W3WResult.Failure(InvalidQueryException())
 

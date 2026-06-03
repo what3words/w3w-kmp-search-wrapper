@@ -125,7 +125,9 @@ A `W3WSearchClient` is usually constructed once per `ViewModel`, but provider se
 | `MapboxSearch` | `mapboxConfig` | Full swap via `copy(...)` (immutable `data class`) |
 | `GooglePlacesSearch` | `googlePlacesConfig` | Full swap via `copy(...)` (immutable) |
 
-Each getter returns `null` if the corresponding plugin was not installed.
+Each getter returns `null` if the corresponding plugin was not installed. The setter accepts
+only non-null values — assigning `null` throws `IllegalArgumentException`. Assigning a
+non-null value when the plugin is not installed is a no-op.
 
 ### Field-level mutation
 

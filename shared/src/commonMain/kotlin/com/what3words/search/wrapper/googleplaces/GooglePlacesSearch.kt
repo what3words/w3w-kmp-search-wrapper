@@ -33,12 +33,16 @@ object GooglePlacesSearch : SearchPlugin<GooglePlacesConfig, ResolvableSearchPro
  * ```kotlin
  * client.googlePlacesConfig = client.googlePlacesConfig?.copy(includedRegionCodes = listOf("GB"))
  * ```
+ *
+ * Assignment is a no-op if the plugin is not installed. Assigning `null` throws
+ * [IllegalArgumentException] — the property is nullable only on read.
  */
 var W3WSearchClient.googlePlacesConfig: GooglePlacesConfig?
     get() = config.providers.filterIsInstance<GooglePlacesSearchProvider>()
         .firstOrNull()?.config
     set(value) {
+        requireNotNull(value) { "googlePlacesConfig cannot be set to null" }
         val provider = config.providers.filterIsInstance<GooglePlacesSearchProvider>()
             .firstOrNull() ?: return
-        if (value != null) provider.config = value
+        provider.config = value
     }

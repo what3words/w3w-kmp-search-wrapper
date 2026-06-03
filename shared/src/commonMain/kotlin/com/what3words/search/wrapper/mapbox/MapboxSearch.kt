@@ -32,11 +32,15 @@ object MapboxSearch : SearchPlugin<MapboxConfig, ResolvableSearchProvider>() {
  * ```kotlin
  * client.mapboxConfig = client.mapboxConfig?.copy(maxResults = 10)
  * ```
+ *
+ * Assignment is a no-op if the plugin is not installed. Assigning `null` throws
+ * [IllegalArgumentException] — the property is nullable only on read.
  */
 var W3WSearchClient.mapboxConfig: MapboxConfig?
     get() = config.providers.filterIsInstance<MapboxSearchProvider>().firstOrNull()?.config
     set(value) {
+        requireNotNull(value) { "mapboxConfig cannot be set to null" }
         val provider = config.providers.filterIsInstance<MapboxSearchProvider>().firstOrNull()
             ?: return
-        if (value != null) provider.config = value
+        provider.config = value
     }

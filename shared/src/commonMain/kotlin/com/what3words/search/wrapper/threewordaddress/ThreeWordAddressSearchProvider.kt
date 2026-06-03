@@ -41,7 +41,8 @@ internal class ThreeWordAddressSearchProvider(
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
             safeW3WCall {
-                val autosuggestOptions = config.toAutosuggestOptions()
+                val snapshot = config
+                val autosuggestOptions = snapshot.toAutosuggestOptions()
                 val strippedQuery = query.removePrefix(THREE_WORD_ADDRESS_PREFIX)
                 val canonicalQuery = strippedQuery.normalizeToCanonicalForm()
                 when (val result = textDataSource.autosuggest(canonicalQuery, autosuggestOptions)) {

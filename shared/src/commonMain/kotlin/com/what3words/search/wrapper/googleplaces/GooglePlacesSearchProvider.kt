@@ -96,9 +96,9 @@ internal class GooglePlacesSearchProvider internal constructor(
      */
     private val sessionManager: SessionManager by lazy { SessionManager() }
 
-    /** Returns the current session token, or `null` if session tokens are currently disabled. */
-    private fun sessionToken(): String? =
-        if (config.useSessionTokens) sessionManager.sessionToken else null
+    /** Returns the current session token under [snapshot], or `null` if session tokens are disabled. */
+    private fun sessionToken(snapshot: GooglePlacesConfig): String? =
+        if (snapshot.useSessionTokens) sessionManager.sessionToken else null
 
     /** Handles queries that meet or exceed [GooglePlacesConfig.minQueryLength]. */
     override fun canHandle(query: String): Boolean = query.length >= config.minQueryLength
@@ -131,7 +131,7 @@ internal class GooglePlacesSearchProvider internal constructor(
         withContext(Dispatchers.IO) {
             safeW3WCall {
                 val snapshot = config
-                val token = sessionToken()
+                val token = sessionToken(snapshot)
 
                 val response = httpClient.post(AUTOCOMPLETE_PATH) {
                     applyHeaders(autoCompleteHeaders(snapshot))
@@ -196,13 +196,14 @@ internal class GooglePlacesSearchProvider internal constructor(
      */
     override suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> =
         withContext(Dispatchers.IO) {
+            // Snapshot once so the request, token decision, and post-call rotation all agree.
+            val snapshot = config
             try {
                 safeW3WCall {
                     val placeId = data.extras[EXTRAS_KEY_PLACE_ID]
                         ?: return@safeW3WCall W3WResult.Failure(MissingAddressIdException())
 
-                    val snapshot = config
-                    val token = sessionToken()
+                    val token = sessionToken(snapshot)
 
                     val response = httpClient.get("$BASE_URL/$placeId") {
                         applyHeaders(placeDetailHeaders(snapshot))
@@ -239,7 +240,8 @@ internal class GooglePlacesSearchProvider internal constructor(
                 }
             } finally {
                 // Rotate the token after every place details fetch to start a fresh billing session.
-                if (config.useSessionTokens) sessionManager.refresh()
+                // Use the same snapshot taken at the start so the decision matches the request that just ran.
+                if (snapshot.useSessionTokens) sessionManager.refresh()
             }
         }
 }
