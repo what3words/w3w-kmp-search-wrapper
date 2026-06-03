@@ -22,6 +22,7 @@ import io.ktor.client.request.parameter
 import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -53,7 +54,7 @@ private const val EXTRAS_KEY_MAPBOX_ID = "mapbox_id"
  * @property textDataSource Used for coordinate-to-what3words conversion.
  */
 internal class MapboxSearchProvider internal constructor(
-    private val config: MapboxConfig,
+    @Volatile var config: MapboxConfig,
     private val textDataSource: W3WTextDataSource,
     private val httpClient: HttpClient,
 ) : ResolvableSearchProvider {
@@ -92,6 +93,7 @@ internal class MapboxSearchProvider internal constructor(
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
             safeW3WCall {
+                val snapshot = config
                 if (sessionManager.shouldRefresh()) sessionManager.refresh()
                 sessionManager.onSuggestCall()
                 val response = httpClient.get(BASE_URL) {
@@ -99,13 +101,13 @@ internal class MapboxSearchProvider internal constructor(
                         appendPathSegments(SUGGEST_PATH)
                     }
                     parameter(PARAM_SESSION_TOKEN, sessionManager.sessionToken)
-                    parameter(PARAM_ACCESS_TOKEN, config.apiKey)
+                    parameter(PARAM_ACCESS_TOKEN, snapshot.apiKey)
                     parameter(PARAM_QUERY, query)
-                    parameter(PARAM_LIMIT, config.maxResults)
-                    if (config.includedRegionCodes.isNotEmpty()) {
-                        parameter(PARAM_COUNTRY, config.includedRegionCodes.joinToString(","))
+                    parameter(PARAM_LIMIT, snapshot.maxResults)
+                    if (snapshot.includedRegionCodes.isNotEmpty()) {
+                        parameter(PARAM_COUNTRY, snapshot.includedRegionCodes.joinToString(","))
                     }
-                    config.focus?.let {
+                    snapshot.focus?.let {
                         parameter(PARAM_PROXIMITY, "${it.lng},${it.lat}")
                     }
                 }
@@ -162,12 +164,13 @@ internal class MapboxSearchProvider internal constructor(
                 val id = data.extras[EXTRAS_KEY_MAPBOX_ID]
                     ?: return@safeW3WCall W3WResult.Failure(MissingAddressIdException())
 
+                val snapshot = config
                 val response = httpClient.get(BASE_URL) {
                     url {
                         appendPathSegments(RETRIEVE_PATH, id)
                     }
                     parameter(PARAM_SESSION_TOKEN, sessionManager.sessionToken)
-                    parameter(PARAM_ACCESS_TOKEN, config.apiKey)
+                    parameter(PARAM_ACCESS_TOKEN, snapshot.apiKey)
                 }
                 if (!response.status.isSuccess()) {
                     return@safeW3WCall W3WResult.Failure(response.toMapboxApiError())
@@ -188,7 +191,7 @@ internal class MapboxSearchProvider internal constructor(
 
                 when (val w3wResult = textDataSource.convertTo3wa(
                     coordinates = W3WCoordinates(lat = lat, lng = lng),
-                    language = config.language,
+                    language = snapshot.language,
                 )) {
                     is W3WResult.Success -> W3WResult.Success(
                         SearchResult.ResolvedAddress(

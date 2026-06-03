@@ -16,6 +16,7 @@ import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.InvalidCoordinatesException
+import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -32,7 +33,7 @@ const val COORDINATES_PROVIDER_ID: String = "CoordinatesSearchProvider"
  */
 internal class CoordinatesSearchProvider(
     private val textDataSource: W3WTextDataSource,
-    private val config: CoordinatesSearchConfig
+    @Volatile var config: CoordinatesSearchConfig
 ) : SearchProvider {
     override val providerId: String = COORDINATES_PROVIDER_ID
 

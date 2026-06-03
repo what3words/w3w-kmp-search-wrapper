@@ -3,6 +3,7 @@ package com.what3words.search.wrapper.bng
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SimpleSearchPlugin
+import com.what3words.search.wrapper.core.W3WSearchClient
 
 /**
  * Entry point for the British National Grid search plugin.
@@ -23,3 +24,16 @@ object BritishNationalGridSearch :
         return BritishNationalGridSearchProvider(textDataSource, config)
     }
 }
+
+/**
+ * The live [BritishNationalGridSearchConfig] for the installed provider, or `null` if
+ * [BritishNationalGridSearch] was not installed. Field mutations take effect on the next search.
+ */
+var W3WSearchClient.britishNationalGridConfig: BritishNationalGridSearchConfig?
+    get() = config.providers.filterIsInstance<BritishNationalGridSearchProvider>()
+        .firstOrNull()?.config
+    set(value) {
+        val provider = config.providers.filterIsInstance<BritishNationalGridSearchProvider>()
+            .firstOrNull() ?: return
+        if (value != null) provider.config = value
+    }

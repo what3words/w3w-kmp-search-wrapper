@@ -34,6 +34,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -68,7 +69,7 @@ private const val QUERY_PARAM_SESSION_TOKEN = "sessionToken"
  * @property textDataSource Used for coordinate-to-what3words conversion.
  */
 internal class GooglePlacesSearchProvider internal constructor(
-    private val config: GooglePlacesConfig,
+    @Volatile var config: GooglePlacesConfig,
     private val textDataSource: W3WTextDataSource,
     private val httpClient: HttpClient,
 ) : ResolvableSearchProvider {
@@ -89,32 +90,31 @@ internal class GooglePlacesSearchProvider internal constructor(
 
     override val providerId: String = GOOGLE_PLACES_PROVIDER_ID
 
-    /** Active session manager; `null` when [GooglePlacesConfig.useSessionTokens] is `false`. */
-    private val sessionManager: SessionManager? =
-        if (config.useSessionTokens) SessionManager() else null
+    /**
+     * Lazily created when first needed. Reused across calls so token rotation state survives
+     * runtime config swaps. Token emission is still gated on [GooglePlacesConfig.useSessionTokens].
+     */
+    private val sessionManager: SessionManager by lazy { SessionManager() }
 
-    /** Returns the current session token, or `null` if session tokens are disabled. */
-    private fun sessionToken(): String? = sessionManager?.sessionToken
+    /** Returns the current session token, or `null` if session tokens are currently disabled. */
+    private fun sessionToken(): String? =
+        if (config.useSessionTokens) sessionManager.sessionToken else null
 
     /** Handles queries that meet or exceed [GooglePlacesConfig.minQueryLength]. */
     override fun canHandle(query: String): Boolean = query.length >= config.minQueryLength
 
-    /** Headers sent with every autocomplete request. */
-    private val autoCompleteHeaders: Map<String, String> by lazy {
-        buildMap {
-            put(HEADER_API_KEY, config.apiKey)
-            put(HEADER_FIELD_MASK, AUTOCOMPLETE_FIELD_MASK)
-            config.headers.forEach { (key, value) -> if (value != null) put(key, value) }
-        }
+    /** Builds autocomplete request headers from the current [config]. */
+    private fun autoCompleteHeaders(snapshot: GooglePlacesConfig): Map<String, String> = buildMap {
+        put(HEADER_API_KEY, snapshot.apiKey)
+        put(HEADER_FIELD_MASK, AUTOCOMPLETE_FIELD_MASK)
+        snapshot.headers.forEach { (key, value) -> if (value != null) put(key, value) }
     }
 
-    /** Headers sent with every place-details request. */
-    private val placeDetailHeaders: Map<String, String> by lazy {
-        buildMap {
-            put(HEADER_API_KEY, config.apiKey)
-            put(HEADER_FIELD_MASK, PLACE_DETAILS_FIELD_MASK)
-            config.headers.forEach { (key, value) -> if (value != null) put(key, value) }
-        }
+    /** Builds place-details request headers from the current [config]. */
+    private fun placeDetailHeaders(snapshot: GooglePlacesConfig): Map<String, String> = buildMap {
+        put(HEADER_API_KEY, snapshot.apiKey)
+        put(HEADER_FIELD_MASK, PLACE_DETAILS_FIELD_MASK)
+        snapshot.headers.forEach { (key, value) -> if (value != null) put(key, value) }
     }
 
     /** Applies a pre-built header map to the request. */
@@ -130,18 +130,19 @@ internal class GooglePlacesSearchProvider internal constructor(
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
             safeW3WCall {
+                val snapshot = config
                 val token = sessionToken()
 
                 val response = httpClient.post(AUTOCOMPLETE_PATH) {
-                    applyHeaders(autoCompleteHeaders)
+                    applyHeaders(autoCompleteHeaders(snapshot))
                     contentType(ContentType.Application.Json)
                     setBody(
                         AutocompleteRequest(
                             input = query,
                             sessionToken = token,
-                            locationBias = config.locationBias?.toLocationBiasRequest(),
-                            origin = config.origin?.let { LatLng(it.lat, it.lng) },
-                            includedRegionCodes = config.includedRegionCodes.takeIf { it.isNotEmpty() },
+                            locationBias = snapshot.locationBias?.toLocationBiasRequest(),
+                            origin = snapshot.origin?.let { LatLng(it.lat, it.lng) },
+                            includedRegionCodes = snapshot.includedRegionCodes.takeIf { it.isNotEmpty() },
                         )
                     )
                 }
@@ -151,7 +152,7 @@ internal class GooglePlacesSearchProvider internal constructor(
                 }
 
                 val results = response.body<AutocompleteResponse>().suggestions
-                    .take(config.maxResults)
+                    .take(snapshot.maxResults)
                     .mapNotNull { suggestion ->
                         val prediction = suggestion.placePrediction ?: return@mapNotNull null
                         SearchResult.SearchSuggestion(
@@ -200,10 +201,11 @@ internal class GooglePlacesSearchProvider internal constructor(
                     val placeId = data.extras[EXTRAS_KEY_PLACE_ID]
                         ?: return@safeW3WCall W3WResult.Failure(MissingAddressIdException())
 
+                    val snapshot = config
                     val token = sessionToken()
 
                     val response = httpClient.get("$BASE_URL/$placeId") {
-                        applyHeaders(placeDetailHeaders)
+                        applyHeaders(placeDetailHeaders(snapshot))
                         parameter(QUERY_PARAM_SESSION_TOKEN, token)
                     }
 
@@ -220,7 +222,7 @@ internal class GooglePlacesSearchProvider internal constructor(
                     val coordinates = W3WCoordinates(lat = latLng.latitude, lng = latLng.longitude)
 
                     when (val w3wResult =
-                        textDataSource.convertTo3wa(coordinates, config.language)) {
+                        textDataSource.convertTo3wa(coordinates, snapshot.language)) {
                         is W3WResult.Success -> W3WResult.Success(
                             SearchResult.ResolvedAddress(
                                 query = data.query,
@@ -237,7 +239,7 @@ internal class GooglePlacesSearchProvider internal constructor(
                 }
             } finally {
                 // Rotate the token after every place details fetch to start a fresh billing session.
-                sessionManager?.refresh()
+                if (config.useSessionTokens) sessionManager.refresh()
             }
         }
 }
