@@ -2,6 +2,7 @@ package com.what3words.search.wrapper
 
 import android.content.Context
 import com.what3words.core.datasource.text.W3WTextDataSource
+import com.what3words.core.types.domain.W3WCountry
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.search.wrapper.bng.BritishNationalGridSearch
 import com.what3words.search.wrapper.coordinates.CoordinatesSearch
@@ -13,6 +14,8 @@ import com.what3words.search.wrapper.mapbox.MapboxConfig
 import com.what3words.search.wrapper.mapbox.MapboxSearch
 import com.what3words.search.wrapper.threewordaddress.MayBeAThreeWordAddressSearch
 import com.what3words.search.wrapper.threewordaddress.ThreeWordAddressSearch
+import com.what3words.search.wrapper.threewordaddress.mayBeAThreeWordAddressConfig
+import com.what3words.search.wrapper.threewordaddress.threeWordAddressConfig
 
 /** The map provider used to back the external place search. */
 enum class MapProvider { Google, Mapbox }
@@ -73,5 +76,17 @@ class SearchClientProvider(
     fun clientFor(provider: MapProvider): W3WSearchClient = when (provider) {
         MapProvider.Google -> googleMapsClient
         MapProvider.Mapbox -> mapboxClient
+    }
+
+    /**
+     * Toggles country clipping on the three-word-address providers for both clients at runtime.
+     * Demonstrates mutating provider configuration without rebuilding the [W3WSearchClient].
+     */
+    fun setClipToVn(enabled: Boolean) {
+        val countries = if (enabled) listOf(W3WCountry("VN")) else emptyList()
+        listOf(googleMapsClient, mapboxClient).forEach { client ->
+            client.threeWordAddressConfig?.clippedCountries = countries
+            client.mayBeAThreeWordAddressConfig?.clippedCountries = countries
+        }
     }
 }

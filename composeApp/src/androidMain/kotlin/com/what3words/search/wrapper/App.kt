@@ -20,7 +20,9 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -105,6 +107,28 @@ fun App(viewModel: SearchViewModel) {
                     singleLine = true,
                     shape = MaterialTheme.shapes.large,
                 )
+
+                // ── Clip-to-UK toggle ─────────────────────────────────────────
+                // Demonstrates mutating ThreeWordAddressSearchConfig.clippedCountries
+                // at runtime without rebuilding the W3WSearchClient.
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                ) {
+                    Text(
+                        text = "Clip 3wa to VN",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Switch(
+                        checked = uiState.clipToVn,
+                        onCheckedChange = {
+                            viewModel.handleAction(SearchAction.SetClipToVn(it))
+                        },
+                    )
+                }
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // ── Search progress ───────────────────────────────────────────

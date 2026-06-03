@@ -23,12 +23,14 @@ sealed class SearchAction {
     data class SuggestionSelected(val suggestion: SearchResult) : SearchAction()
     data object ClearQuery : SearchAction()
     data object SwitchMapProvider : SearchAction()
+    data class SetClipToVn(val enabled: Boolean) : SearchAction()
 }
 
 data class UiState(
     val query: String = "",
     val mapProvider: MapProvider = MapProvider.Google,
     val mapSwitcherEnabled: Boolean = true,
+    val clipToVn: Boolean = false,
     val suggestions: List<SearchResult> = emptyList(),
     val resolvedAddress: SearchResult.ResolvedAddress? = null,
     val isSearching: Boolean = false,
@@ -48,14 +50,14 @@ class SearchViewModel(
     private var searchTask: Job? = null
 
     init {
-        // Re-run search whenever the query or active provider changes.
+        // Re-run search whenever the query, active provider, or clipping flag changes.
         viewModelScope.launch {
             _uiState
-                .map { it.query to it.mapProvider }
-                .filter { (query, _) -> query.isNotBlank() }
+                .map { Triple(it.query, it.mapProvider, it.clipToVn) }
+                .filter { (query, _, _) -> query.isNotBlank() }
                 .debounce(300L)
                 .distinctUntilChanged()
-                .collect { (query, _) ->
+                .collect { (query, _, _) ->
                     performSearch(query)
                 }
         }
@@ -67,7 +69,14 @@ class SearchViewModel(
             is SearchAction.SuggestionSelected -> onSuggestionSelected(action.suggestion)
             is SearchAction.ClearQuery -> onQueryCleared()
             is SearchAction.SwitchMapProvider -> switchMapProvider()
+            is SearchAction.SetClipToVn -> setClipToVn(action.enabled)
         }
+    }
+
+    private fun setClipToVn(enabled: Boolean) {
+        // Mutate the live provider configs; the next search picks up the change.
+        searchClientProvider.setClipToVn(enabled)
+        _uiState.update { it.copy(clipToVn = enabled) }
     }
 
     private fun switchMapProvider() {
