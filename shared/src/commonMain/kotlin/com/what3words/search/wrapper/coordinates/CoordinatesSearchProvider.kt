@@ -16,6 +16,7 @@ import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.InvalidCoordinatesException
+import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -32,18 +33,21 @@ const val COORDINATES_PROVIDER_ID: String = "CoordinatesSearchProvider"
  */
 internal class CoordinatesSearchProvider(
     private val textDataSource: W3WTextDataSource,
-    private val config: CoordinatesSearchConfig
+    @Volatile var config: CoordinatesSearchConfig
 ) : SearchProvider {
     override val providerId: String = COORDINATES_PROVIDER_ID
 
     /**
      * Checks if the given query matches any enabled coordinate format.
      */
-    override fun canHandle(query: String): Boolean = when {
-        config.enableDMS && query.isDmsPattern() -> true
-        config.enableDDM && query.isDdmPattern() -> true
-        config.enableDecimal && (query.isDdPattern() || query.isDdPrefixPattern() || query.isDdSuffixPattern()) -> true
-        else -> false
+    override fun canHandle(query: String): Boolean {
+        val snapshot = config
+        return when {
+            snapshot.enableDMS && query.isDmsPattern() -> true
+            snapshot.enableDDM && query.isDdmPattern() -> true
+            snapshot.enableDecimal && (query.isDdPattern() || query.isDdPrefixPattern() || query.isDdSuffixPattern()) -> true
+            else -> false
+        }
     }
 
     /**
@@ -53,16 +57,17 @@ internal class CoordinatesSearchProvider(
         Dispatchers.IO
     ) {
         safeW3WCall {
+            val snapshot = config
             val coordinates = when {
-                config.enableDMS && query.isDmsPattern() -> parseDmsCoordinates(query)
-                config.enableDDM && query.isDdmPattern() -> parseDdmCoordinates(query)
-                config.enableDecimal && query.isDdPattern() -> parseDdCoordinates(query)
-                config.enableDecimal && query.isDdSuffixPattern() -> parseDdSuffixCoordinates(query)
-                config.enableDecimal && query.isDdPrefixPattern() -> parseDdPrefixCoordinates(query)
+                snapshot.enableDMS && query.isDmsPattern() -> parseDmsCoordinates(query)
+                snapshot.enableDDM && query.isDdmPattern() -> parseDdmCoordinates(query)
+                snapshot.enableDecimal && query.isDdPattern() -> parseDdCoordinates(query)
+                snapshot.enableDecimal && query.isDdSuffixPattern() -> parseDdSuffixCoordinates(query)
+                snapshot.enableDecimal && query.isDdPrefixPattern() -> parseDdPrefixCoordinates(query)
                 else -> null
             } ?: return@safeW3WCall W3WResult.Failure(InvalidCoordinatesException())
 
-            when (val result = textDataSource.convertTo3wa(coordinates, config.language)) {
+            when (val result = textDataSource.convertTo3wa(coordinates, snapshot.language)) {
                 is W3WResult.Success -> W3WResult.Success(
                     listOf(
                         SearchResult.ResolvedAddress(

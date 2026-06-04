@@ -3,6 +3,7 @@ package com.what3words.search.wrapper.coordinates
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SimpleSearchPlugin
+import com.what3words.search.wrapper.core.W3WSearchClient
 
 /**
  * Entry point for the coordinates search plugin.
@@ -30,3 +31,21 @@ object CoordinatesSearch :
         return CoordinatesSearchProvider(textDataSource, config)
     }
 }
+
+/**
+ * The live [CoordinatesSearchConfig] for the installed provider, or `null` if
+ * [CoordinatesSearch] was not installed.
+ *
+ * Field mutations take effect on the next search. Assigning a non-null value replaces the
+ * config; assignment is a no-op if the plugin is not installed. Assigning `null` throws
+ * [IllegalArgumentException] — the property is nullable only on read.
+ */
+var W3WSearchClient.coordinatesConfig: CoordinatesSearchConfig?
+    get() = config.providers.filterIsInstance<CoordinatesSearchProvider>()
+        .firstOrNull()?.config
+    set(value) {
+        requireNotNull(value) { "coordinatesConfig cannot be set to null" }
+        val provider = config.providers.filterIsInstance<CoordinatesSearchProvider>()
+            .firstOrNull() ?: return
+        provider.config = value
+    }

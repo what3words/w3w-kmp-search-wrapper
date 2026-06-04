@@ -112,6 +112,87 @@ See [`iosApp/SearchComponent/W3WKmpSearchTree.swift`](iosApp/SearchComponent/W3W
 | `MapboxSearch` | `MapboxConfig(apiKey, language, minQueryLength, maxResults, includedRegionCodes, focus)` | Yes | Mapbox Search Box v1 (`/suggest` + `/retrieve`). Requires a Mapbox access token. |
 | `GooglePlacesSearch` | `GooglePlacesConfig(apiKey, language, useSessionTokens, minQueryLength, maxResults, locationBias, origin, includedRegionCodes, headers)` | Yes | Google Places Autocomplete + Place Details. Requires an API key.                 |
 
+## Updating provider configuration at runtime
+
+A `W3WSearchClient` is usually constructed once per `ViewModel`, but provider settings often need to change as the user interacts with the UI (e.g. toggling country clipping, switching languages, adjusting `maxResults`). Each installed provider exposes its live config through an extension property on `W3WSearchClient`, so you can mutate or swap it without rebuilding the client. Changes take effect on the next `search(query)` call.
+
+| Provider | Extension on `W3WSearchClient` | Mutation style |
+| --- | --- | --- |
+| `ThreeWordAddressSearch` | `threeWordAddressConfig` | Field-level (`var` properties) or full swap |
+| `MayBeAThreeWordAddressSearch` | `mayBeAThreeWordAddressConfig` | Field-level or full swap |
+| `CoordinatesSearch` | `coordinatesConfig` | Field-level or full swap |
+| `BritishNationalGridSearch` | `britishNationalGridConfig` | Field-level or full swap |
+| `MapboxSearch` | `mapboxConfig` | Full swap via `copy(...)` (immutable `data class`) |
+| `GooglePlacesSearch` | `googlePlacesConfig` | Full swap via `copy(...)` (immutable) |
+
+Each getter returns `null` if the corresponding plugin was not installed. The setter accepts
+only non-null values — assigning `null` throws `IllegalArgumentException`. Assigning a
+non-null value when the plugin is not installed is a no-op.
+
+### Field-level mutation
+
+For configs with `var` fields, mutate in place:
+
+```kotlin
+class SearchViewModel(private val client: W3WSearchClient) : ViewModel() {
+
+    fun onClipToUkToggled(enabled: Boolean) {
+        client.threeWordAddressConfig?.clippedCountries =
+            if (enabled) listOf(W3WCountry("GB")) else emptyList()
+    }
+
+    fun onFocusChanged(coords: W3WCoordinates?) {
+        client.threeWordAddressConfig?.focus = coords
+    }
+}
+```
+
+### Swap an immutable config
+
+For `MapboxConfig` and `GooglePlacesConfig` (immutable), assign a `copy(...)`:
+
+```kotlin
+client.mapboxConfig = client.mapboxConfig?.copy(
+    maxResults = 10,
+    includedRegionCodes = listOf("GB"),
+)
+
+client.googlePlacesConfig = client.googlePlacesConfig?.copy(
+    includedRegionCodes = listOf("GB"),
+)
+```
+
+You can use the swap-style update on the mutable configs too if you prefer a single transactional update:
+
+```kotlin
+client.threeWordAddressConfig = ThreeWordAddressSearchConfig(
+    clippedCountries = listOf(W3WCountry("GB")),
+    maxResults = 5,
+    preferLand = true,
+)
+```
+
+### Swift
+
+SKIE exposes the same extensions as Swift properties on `W3WSearchClient`:
+
+```swift
+searchClient.threeWordAddressConfig?.clippedCountries = [W3WCountry(twoLetterCode: "GB")]
+
+if let current = searchClient.mapboxConfig {
+    searchClient.mapboxConfig = current.doCopy(
+        maxResults: 10,
+        includedRegionCodes: ["GB"]
+    )
+}
+```
+
+### Concurrency notes
+
+- The underlying `var config` is annotated `@Volatile`, so reference swaps are safely published across threads.
+- Each `executeSearch` / `resolve` reads `config` into a local snapshot at the start of the call, so an in-flight search will not observe a torn view if you mutate from another thread.
+- Field-level mutations on a shared config instance are not individually atomic across multiple fields. If you need to change several fields together while a search may be in flight, prefer the swap-style update (assign a new config instance).
+
 ## How does it work?
 
 ### Priority tiers

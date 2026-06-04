@@ -12,6 +12,7 @@ import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.InvalidQueryException
 import com.what3words.search.wrapper.threewordaddress.helper.lettersOnly
 import com.what3words.search.wrapper.threewordaddress.helper.mayBeA3WordAddress
+import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -27,18 +28,18 @@ private const val THREE_WORD_ADDRESS_PREFIX = "///"
  */
 internal class MayBeAThreeWordAddressSearchProvider(
     private val textDataSource: W3WTextDataSource,
-    private val config: MayBeAThreeWordAddressSearchConfig,
+    @Volatile var config: MayBeAThreeWordAddressSearchConfig,
 ) : SearchProvider {
 
     override val providerId: String = MAY_BE_THREE_WORD_ADDRESS_PROVIDER_ID
-
-    private val autosuggestOptions by lazy { config.toAutosuggestOptions() }
 
     override fun canHandle(query: String): Boolean = query.mayBeA3WordAddress() != null
 
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
             safeW3WCall {
+                val snapshot = config
+                val autosuggestOptions = snapshot.toAutosuggestOptions()
                 val maybe3wa = query.mayBeA3WordAddress()
                     ?: return@safeW3WCall W3WResult.Failure(InvalidQueryException())
 

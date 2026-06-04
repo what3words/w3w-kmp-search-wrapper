@@ -8,6 +8,7 @@ import com.what3words.search.wrapper.core.SearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.InvalidCoordinatesException
+import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -24,7 +25,7 @@ const val BRITISH_NATIONAL_GRID_PROVIDER_ID: String = "BngSearchProvider"
  */
 internal class BritishNationalGridSearchProvider(
     private val textDataSource: W3WTextDataSource,
-    private val config: BritishNationalGridSearchConfig
+    @Volatile var config: BritishNationalGridSearchConfig
 ) : SearchProvider {
     override val providerId: String = BRITISH_NATIONAL_GRID_PROVIDER_ID
 
@@ -43,10 +44,11 @@ internal class BritishNationalGridSearchProvider(
         Dispatchers.IO
     ) {
         safeW3WCall {
+            val snapshot = config
             val coordinates = UKNationalGridTransformer.getCoordinatesFromOSGrid(query)
                 ?: return@safeW3WCall W3WResult.Failure(InvalidCoordinatesException())
 
-            when (val result = textDataSource.convertTo3wa(coordinates, config.language)) {
+            when (val result = textDataSource.convertTo3wa(coordinates, snapshot.language)) {
                 is W3WResult.Success -> W3WResult.Success(
                     listOf(
                         SearchResult.ResolvedAddress(

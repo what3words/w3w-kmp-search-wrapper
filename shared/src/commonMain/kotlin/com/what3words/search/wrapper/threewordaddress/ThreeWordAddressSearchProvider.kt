@@ -12,6 +12,7 @@ import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.MissingSuggestionTitleException
 import com.what3words.search.wrapper.threewordaddress.helper.isA3WordAddress
 import com.what3words.search.wrapper.threewordaddress.helper.normalizeToCanonicalForm
+import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -26,20 +27,22 @@ private const val THREE_WORD_ADDRESS_PREFIX = "///"
  */
 internal class ThreeWordAddressSearchProvider(
     private val textDataSource: W3WTextDataSource,
-    config: ThreeWordAddressSearchConfig,
+    @Volatile var config: ThreeWordAddressSearchConfig,
 ) : ResolvableSearchProvider {
 
     override val providerId: String = THREE_WORD_ADDRESS_PROVIDER_ID
 
-    private val allowSpaceSeparator = config.allowSpaceSeparator
-    private val autosuggestOptions = config.toAutosuggestOptions()
-
-    override fun canHandle(query: String): Boolean =
-        query.startsWith(THREE_WORD_ADDRESS_PREFIX) || query.isA3WordAddress(allowSpaceSeparator)
+    override fun canHandle(query: String): Boolean {
+        val snapshot = config
+        return query.startsWith(THREE_WORD_ADDRESS_PREFIX) ||
+                query.isA3WordAddress(snapshot.allowSpaceSeparator)
+    }
 
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
         withContext(Dispatchers.IO) {
             safeW3WCall {
+                val snapshot = config
+                val autosuggestOptions = snapshot.toAutosuggestOptions()
                 val strippedQuery = query.removePrefix(THREE_WORD_ADDRESS_PREFIX)
                 val canonicalQuery = strippedQuery.normalizeToCanonicalForm()
                 when (val result = textDataSource.autosuggest(canonicalQuery, autosuggestOptions)) {
