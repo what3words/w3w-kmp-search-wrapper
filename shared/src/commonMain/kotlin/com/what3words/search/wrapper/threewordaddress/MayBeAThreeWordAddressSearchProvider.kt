@@ -2,7 +2,10 @@ package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
-import com.what3words.search.wrapper.core.SearchProvider
+import com.what3words.core.types.geometry.W3WCoordinates
+import com.what3words.core.types.language.W3WProprietaryLanguage
+import com.what3words.core.types.language.W3WRFC5646Language
+import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
@@ -10,17 +13,21 @@ import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUGG
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.InvalidQueryException
+import com.what3words.search.wrapper.error.MissingCoordinatesException
 import com.what3words.search.wrapper.threewordaddress.helper.lettersOnly
 import com.what3words.search.wrapper.threewordaddress.helper.mayBeA3WordAddress
-import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import kotlin.concurrent.Volatile
 
 /** Unique identifier for the may-be three-word address search provider. */
 const val MAY_BE_THREE_WORD_ADDRESS_PROVIDER_ID = "MayBeAThreeWordAddressSearchProvider"
 
 private const val THREE_WORD_ADDRESS_PREFIX = "///"
+private const val EXTRAS_LATITUDE = "latitude"
+private const val EXTRAS_LONGITUDE = "longitude"
+private const val EXTRAS_LANGUAGE = "language"
 
 /**
  * Search provider for loose three-word-address-like queries.
@@ -29,7 +36,7 @@ private const val THREE_WORD_ADDRESS_PREFIX = "///"
 internal class MayBeAThreeWordAddressSearchProvider(
     private val textDataSource: W3WTextDataSource,
     @Volatile var config: MayBeAThreeWordAddressSearchConfig,
-) : SearchProvider {
+) : ResolvableSearchProvider {
 
     override val providerId: String = MAY_BE_THREE_WORD_ADDRESS_PROVIDER_ID
 
@@ -62,6 +69,11 @@ internal class MayBeAThreeWordAddressSearchProvider(
                                 firstSuggestion.distanceToFocus?.let {
                                     put(EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString())
                                 }
+                                firstSuggestion.w3wAddress.center?.let {
+                                    put(EXTRAS_LATITUDE, it.lat.toString())
+                                    put(EXTRAS_LONGITUDE, it.lng.toString())
+                                }
+                                put(EXTRAS_LANGUAGE, firstSuggestion.w3wAddress.language.w3wCode)
                             }
                             listOf(SearchResult.SearchSuggestion(query, providerId, extras))
                         } else {
@@ -70,6 +82,42 @@ internal class MayBeAThreeWordAddressSearchProvider(
 
                         W3WResult.Success(suggestions)
                     }
+                }
+            }
+        }
+
+    override suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> =
+        withContext(Dispatchers.IO) {
+            safeW3WCall {
+                val latitude = data.extras[EXTRAS_LATITUDE]?.toDouble()
+                val longitude = data.extras[EXTRAS_LONGITUDE]?.toDouble()
+                val language = data.extras[EXTRAS_LANGUAGE]?.let {
+                    W3WProprietaryLanguage(
+                        it,
+                        null,
+                        null,
+                        null
+                    )
+                } ?: W3WRFC5646Language.EN_GB
+
+                if (latitude == null || longitude == null)
+                    return@safeW3WCall W3WResult.Failure(MissingCoordinatesException())
+
+                when (val result =
+                    textDataSource.convertTo3wa(
+                        coordinates = W3WCoordinates(latitude, longitude),
+                        language = language
+                    )
+                ) {
+                    is W3WResult.Success -> W3WResult.Success(
+                        SearchResult.ResolvedAddress(
+                            data.query,
+                            providerId,
+                            result.value
+                        )
+                    )
+
+                    is W3WResult.Failure -> W3WResult.Failure(result.error)
                 }
             }
         }
