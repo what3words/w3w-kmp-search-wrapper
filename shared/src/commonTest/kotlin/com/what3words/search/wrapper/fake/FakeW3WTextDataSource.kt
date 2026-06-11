@@ -20,6 +20,7 @@ class FakeW3WTextDataSource : W3WTextDataSource {
     var lastConvertToCoordinatesWords: String? = null
     var lastAutosuggestInput: String? = null
     var lastAutosuggestOptions: W3WAutosuggestOptions? = null
+    val autosuggestInputs = mutableListOf<String>()
 
     override fun version(version: W3WTextDataSource.Version): String? = null
 
@@ -35,6 +36,7 @@ class FakeW3WTextDataSource : W3WTextDataSource {
     override fun autosuggest(input: String, options: W3WAutosuggestOptions?): W3WResult<List<W3WSuggestion>> {
         lastAutosuggestInput = input
         lastAutosuggestOptions = options
+        autosuggestInputs += input
         return autosuggestResult ?: throw NotImplementedError()
     }
 

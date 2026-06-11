@@ -11,7 +11,7 @@ import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITL
 import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.MissingSuggestionTitleException
 import com.what3words.search.wrapper.threewordaddress.helper.isA3WordAddress
-import com.what3words.search.wrapper.threewordaddress.helper.normalizeToCanonicalForm
+import com.what3words.search.wrapper.threewordaddress.helper.normalizeSpaceSeparatedQuery
 import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -43,14 +43,14 @@ internal class ThreeWordAddressSearchProvider(
             safeW3WCall {
                 val snapshot = config
                 val autosuggestOptions = snapshot.toAutosuggestOptions()
-                val strippedQuery = query.removePrefix(THREE_WORD_ADDRESS_PREFIX)
-                val canonicalQuery = strippedQuery.normalizeToCanonicalForm()
-                when (val result = textDataSource.autosuggest(canonicalQuery, autosuggestOptions)) {
+                val autosuggestQuery =
+                    if (snapshot.allowSpaceSeparator) query.normalizeSpaceSeparatedQuery() else query
+                when (val result = textDataSource.autosuggest(autosuggestQuery, autosuggestOptions)) {
                     is W3WResult.Success -> W3WResult.Success(
                         result.value.map { suggestion ->
                             if (suggestion.w3wAddress.center != null) {
                                 SearchResult.ResolvedAddress(
-                                    query = canonicalQuery,
+                                    query = autosuggestQuery,
                                     providerId = providerId,
                                     address = suggestion.w3wAddress,
                                     extras = buildMap {
@@ -65,7 +65,7 @@ internal class ThreeWordAddressSearchProvider(
                                 )
                             } else {
                                 SearchResult.SearchSuggestion(
-                                    query = canonicalQuery,
+                                    query = autosuggestQuery,
                                     providerId = providerId,
                                     extras = buildMap {
                                         put(EXTRAS_KEY_RANK, suggestion.rank.toString())

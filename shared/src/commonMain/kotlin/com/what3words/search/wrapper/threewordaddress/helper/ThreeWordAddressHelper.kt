@@ -52,5 +52,23 @@ internal fun String.lettersOnly(): String = replace(NON_LETTER_REGEX, "").lowerc
 
 private val SPACE_SEPARATOR_REGEX = Regex("""[\u0020\u00A0]""")
 
-/** Replaces space/NBSP separators with dots to produce a canonical dot-separated three-word address. */
-internal fun String.normalizeToCanonicalForm(): String = trim().replace(SPACE_SEPARATOR_REGEX, ".")
+private val W3W_DOT_DELIMITER_REGEX = Regex(W3W_DOT_DELIMITER)
+
+/**
+ * Normalises a space-separated three-word address into the canonical dot-separated form.
+ *
+ * The rule is intentionally simple:
+ * - If the query already contains a dot delimiter, it is returned trimmed and otherwise untouched.
+ *   This preserves word-internal spaces used by spaced languages such as Vietnamese
+ *   (e.g. "///xôi đậu.đậu tằm.vui vẻ"), which must not have their spaces replaced.
+ * - Otherwise every space/NBSP is treated as a word boundary and replaced with a dot
+ *   (e.g. "index home raft" -> "index.home.raft").
+ *
+ * Clients enabling allowSpaceSeparator for spaced languages such as Vietnamese should disable it
+ * instead, since space-separated input cannot be disambiguated there.
+ */
+internal fun String.normalizeSpaceSeparatedQuery(): String {
+    val trimmed = trim()
+    return if (W3W_DOT_DELIMITER_REGEX.containsMatchIn(trimmed)) trimmed
+    else trimmed.replace(SPACE_SEPARATOR_REGEX, ".")
+}
