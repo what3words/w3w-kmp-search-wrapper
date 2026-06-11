@@ -52,23 +52,15 @@ internal fun String.lettersOnly(): String = replace(NON_LETTER_REGEX, "").lowerc
 
 private val SPACE_SEPARATOR_REGEX = Regex("""[\u0020\u00A0]""")
 
-private val W3W_DOT_DELIMITER_REGEX = Regex(W3W_DOT_DELIMITER)
-
 /**
- * Normalises a space-separated three-word address into the canonical dot-separated form.
+ * Normalises a space-separated three-word address into the canonical dot-separated form by treating
+ * every space/NBSP as a word boundary and replacing it with a dot. This completes both fully
+ * space-separated input ("index home raft" -> "index.home.raft") and partially dotted input
+ * ("index.home raft" -> "index.home.raft").
  *
- * The rule is intentionally simple:
- * - If the query already contains a dot delimiter, it is returned trimmed and otherwise untouched.
- *   This preserves word-internal spaces used by spaced languages such as Vietnamese
- *   (e.g. "///xôi đậu.đậu tằm.vui vẻ"), which must not have their spaces replaced.
- * - Otherwise every space/NBSP is treated as a word boundary and replaced with a dot
- *   (e.g. "index home raft" -> "index.home.raft").
- *
- * Clients enabling allowSpaceSeparator for spaced languages such as Vietnamese should disable it
- * instead, since space-separated input cannot be disambiguated there.
+ * This is only applied when allowSpaceSeparator is enabled, which clients must keep disabled for
+ * spaced languages such as Vietnamese — there spaces occur inside words rather than between them,
+ * so those queries are forwarded verbatim instead and resolve via their dot delimiters.
  */
-internal fun String.normalizeSpaceSeparatedQuery(): String {
-    val trimmed = trim()
-    return if (W3W_DOT_DELIMITER_REGEX.containsMatchIn(trimmed)) trimmed
-    else trimmed.replace(SPACE_SEPARATOR_REGEX, ".")
-}
+internal fun String.normalizeSpaceSeparatedQuery(): String =
+    trim().replace(SPACE_SEPARATOR_REGEX, ".")

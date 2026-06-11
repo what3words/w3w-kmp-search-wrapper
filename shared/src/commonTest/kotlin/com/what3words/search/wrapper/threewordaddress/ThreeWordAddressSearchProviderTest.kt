@@ -165,11 +165,12 @@ class ThreeWordAddressSearchProviderTest {
     }
 
     @Test
-    fun executeSearch_dottedQueryIsSentAsIsIncludingPrefix() = runTest {
-        // Case 1: Vietnamese, fully dotted -> word-internal spaces preserved, sent as-is.
+    fun executeSearch_vietnameseWithSpaceSeparatorOffIsSentAsIs() = runTest {
+        // Vietnamese (spaced language): clients keep allowSpaceSeparator false, so the fully dotted
+        // query is forwarded verbatim and its word-internal spaces are preserved.
         val dataSource = fakeSuccessDataSource()
 
-        provider(config = spaceSeparatorConfig(), dataSource = dataSource)
+        provider(dataSource = dataSource)
             .executeSearch("///xôi đậu.đậu tằm.vui vẻ")
 
         assertEquals("///xôi đậu.đậu tằm.vui vẻ", dataSource.lastAutosuggestInput)
@@ -198,7 +199,7 @@ class ThreeWordAddressSearchProviderTest {
 
     @Test
     fun executeSearch_partialDottedInputIsPassedThroughUnchanged() = runTest {
-        // Case 7: partial input while typing -> dot present -> passthrough.
+        // Partial input while typing with no spaces -> nothing to convert -> passthrough.
         val dataSource = fakeSuccessDataSource()
 
         provider(config = spaceSeparatorConfig(), dataSource = dataSource)
@@ -212,7 +213,7 @@ class ThreeWordAddressSearchProviderTest {
         val dataSource = fakeSuccessDataSource()
 
         provider(config = spaceSeparatorConfig(), dataSource = dataSource)
-            .executeSearch("///xôi đậu.đậu tằm.vui vẻ")
+            .executeSearch("index home raft")
 
         assertEquals(1, dataSource.autosuggestInputs.size)
     }
@@ -235,32 +236,34 @@ class ThreeWordAddressSearchProviderTest {
     }
 
     @Test
-    fun executeSearch_partiallyDottedSpacedQueryIsSentAsIs() = runTest {
-        // Case 3: one dot present -> sent as-is, the trailing run is not re-split.
+    fun executeSearch_dotPlusSpaceMixIsCompletedToDots() = runTest {
+        // Fewer than two dots -> remaining space boundaries are filled in.
+        val dataSource = fakeSuccessDataSource()
+
+        provider(config = spaceSeparatorConfig(), dataSource = dataSource)
+            .executeSearch("index.home raft")
+
+        assertEquals("index.home.raft", dataSource.lastAutosuggestInput)
+        assertEquals(1, dataSource.autosuggestInputs.size)
+    }
+
+    @Test
+    fun executeSearch_spacedLanguageQueryWithSeparatorOnIsDottedNotPreserved() = runTest {
+        // With allowSpaceSeparator on, every space becomes a dot. Enabling it for a spaced language
+        // (Vietnamese) therefore mangles word-internal spaces — which is exactly why clients must
+        // keep it off for such languages.
         val dataSource = fakeSuccessDataSource()
 
         provider(config = spaceSeparatorConfig(), dataSource = dataSource)
             .executeSearch("///xôi đậu.đậu tằm vui vẻ")
 
-        assertEquals("///xôi đậu.đậu tằm vui vẻ", dataSource.lastAutosuggestInput)
-        assertEquals(1, dataSource.autosuggestInputs.size)
-    }
-
-    @Test
-    fun executeSearch_spacesAfterDotsAreNotTrimmed() = runTest {
-        // Case 4: dot present -> query sent as-is, including the spaces following the dots.
-        val dataSource = fakeSuccessDataSource()
-
-        provider(config = spaceSeparatorConfig(), dataSource = dataSource)
-            .executeSearch("///xôi đậu. đậu tằm. vui vẻ")
-
-        assertEquals("///xôi đậu. đậu tằm. vui vẻ", dataSource.lastAutosuggestInput)
+        assertEquals("///xôi.đậu.đậu.tằm.vui.vẻ", dataSource.lastAutosuggestInput)
         assertEquals(1, dataSource.autosuggestInputs.size)
     }
 
     @Test
     fun executeSearch_tooManyDotsMakesSingleCallWithNoResults() = runTest {
-        // Case 8: too many dots -> dot present -> sent as-is, one call, empty result.
+        // No spaces to convert -> sent as-is, one call, empty result.
         val dataSource = dataSourceReturning(autosuggestResult = W3WResult.Success(emptyList()))
 
         val result = provider(config = spaceSeparatorConfig(), dataSource = dataSource)
