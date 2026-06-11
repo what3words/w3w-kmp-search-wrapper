@@ -42,7 +42,14 @@ class ThreeWordAddressSearchConfig(
     /** If true, space-separated queries (e.g. "index home raft") are recognised as three-word
      * addresses in addition to the standard dot-separated form.
      * Defaults to false. */
-    var allowSpaceSeparator: Boolean = false
+    var allowSpaceSeparator: Boolean = false,
+
+    /** Maximum number of word-boundary interpretations tried against autosuggest when the query's
+     * separators are ambiguous — i.e. it has fewer than two dots and words may contain spaces, as
+     * in Vietnamese "xôi đậu đậu tằm vui vẻ". Candidates are tried most-likely first and the first
+     * one returning results wins, so this caps the extra autosuggest calls per search.
+     * Defaults to 3. */
+    var maxSegmentationAttempts: Int = 3
 ) : SearchConfig()
 
 internal fun ThreeWordAddressSearchConfig.toAutosuggestOptions(): W3WAutosuggestOptions =

@@ -17,9 +17,13 @@ class FakeW3WTextDataSource : W3WTextDataSource {
     var convertToCoordinatesResult: W3WResult<W3WAddress>? = null
     var autosuggestResult: W3WResult<List<W3WSuggestion>>? = null
 
+    /** When non-empty, each autosuggest call consumes the next result instead of [autosuggestResult]. */
+    val autosuggestResultQueue = ArrayDeque<W3WResult<List<W3WSuggestion>>>()
+
     var lastConvertToCoordinatesWords: String? = null
     var lastAutosuggestInput: String? = null
     var lastAutosuggestOptions: W3WAutosuggestOptions? = null
+    val autosuggestInputs = mutableListOf<String>()
 
     override fun version(version: W3WTextDataSource.Version): String? = null
 
@@ -35,7 +39,10 @@ class FakeW3WTextDataSource : W3WTextDataSource {
     override fun autosuggest(input: String, options: W3WAutosuggestOptions?): W3WResult<List<W3WSuggestion>> {
         lastAutosuggestInput = input
         lastAutosuggestOptions = options
-        return autosuggestResult ?: throw NotImplementedError()
+        autosuggestInputs += input
+        return autosuggestResultQueue.removeFirstOrNull()
+            ?: autosuggestResult
+            ?: throw NotImplementedError()
     }
 
     override fun gridSection(boundingBox: W3WRectangle): W3WResult<W3WGridSection> =

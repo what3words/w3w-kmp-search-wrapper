@@ -149,6 +149,81 @@ class ThreeWordAddressSearchProviderTest {
         assertEquals("filled.count.soap", address.query)
     }
 
+    // ── segmentation ─────────────────────────────────────────────────────────
+
+    @Test
+    fun executeSearch_preservesWordInternalSpacesForFullyDelimitedQuery() = runTest {
+        val dataSource = fakeSuccessDataSource()
+
+        provider(dataSource = dataSource).executeSearch("///xôi đậu.đậu tằm.vui vẻ")
+
+        assertEquals("xôi đậu.đậu tằm.vui vẻ", dataSource.lastAutosuggestInput)
+    }
+
+    @Test
+    fun executeSearch_convertsSpaceSeparatedQueryToDots() = runTest {
+        val dataSource = fakeSuccessDataSource()
+
+        provider(dataSource = dataSource).executeSearch("filled count soap")
+
+        assertEquals("filled.count.soap", dataSource.lastAutosuggestInput)
+    }
+
+    @Test
+    fun executeSearch_triesNextSegmentationWhenFirstReturnsEmpty() = runTest {
+        val dataSource = FakeW3WTextDataSource().apply {
+            autosuggestResultQueue.add(W3WResult.Success(emptyList()))
+            autosuggestResultQueue.add(
+                W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
+            )
+        }
+
+        val result = provider(dataSource = dataSource).executeSearch("///xoi dau dau tam vui ve")
+
+        assertIs<W3WResult.Success<List<SearchResult>>>(result)
+        assertEquals(1, result.value.size)
+        assertEquals(
+            listOf("xoi dau.dau tam.vui ve", "xoi.dau dau.tam vui ve"),
+            dataSource.autosuggestInputs,
+        )
+    }
+
+    @Test
+    fun executeSearch_respectsMaxSegmentationAttempts() = runTest {
+        val dataSource = FakeW3WTextDataSource().apply {
+            autosuggestResult = W3WResult.Success(emptyList())
+        }
+        val config = ThreeWordAddressSearchConfig().apply { maxSegmentationAttempts = 2 }
+
+        val result = ThreeWordAddressSearchProvider(dataSource, config)
+            .executeSearch("///xoi dau dau tam vui ve")
+
+        assertIs<W3WResult.Success<List<SearchResult>>>(result)
+        assertTrue(result.value.isEmpty())
+        assertEquals(2, dataSource.autosuggestInputs.size)
+    }
+
+    @Test
+    fun executeSearch_stopsTryingCandidatesOnFailure() = runTest {
+        val dataSource = FakeW3WTextDataSource().apply {
+            autosuggestResultQueue.add(W3WResult.Failure(W3WError("autosuggest failed")))
+        }
+
+        val result = provider(dataSource = dataSource).executeSearch("///xoi dau dau tam vui ve")
+
+        assertIs<W3WResult.Failure<List<SearchResult>>>(result)
+        assertEquals(1, dataSource.autosuggestInputs.size)
+    }
+
+    @Test
+    fun executeSearch_passesPartialInputThroughUnchanged() = runTest {
+        val dataSource = fakeSuccessDataSource()
+
+        provider(dataSource = dataSource).executeSearch("///filled.cou")
+
+        assertEquals("filled.cou", dataSource.lastAutosuggestInput)
+    }
+
     // ── config options ───────────────────────────────────────────────────────
 
     @Test

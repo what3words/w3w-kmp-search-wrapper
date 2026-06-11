@@ -2,6 +2,7 @@ package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
+import com.what3words.core.types.domain.W3WSuggestion
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
@@ -12,6 +13,7 @@ import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.MissingSuggestionTitleException
 import com.what3words.search.wrapper.threewordaddress.helper.isA3WordAddress
 import com.what3words.search.wrapper.threewordaddress.helper.normalizeToCanonicalForm
+import com.what3words.search.wrapper.threewordaddress.helper.segmentationCandidates
 import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -44,49 +46,59 @@ internal class ThreeWordAddressSearchProvider(
                 val snapshot = config
                 val autosuggestOptions = snapshot.toAutosuggestOptions()
                 val strippedQuery = query.removePrefix(THREE_WORD_ADDRESS_PREFIX)
-                val canonicalQuery = strippedQuery.normalizeToCanonicalForm()
-                when (val result = textDataSource.autosuggest(canonicalQuery, autosuggestOptions)) {
-                    is W3WResult.Success -> W3WResult.Success(
-                        result.value.map { suggestion ->
-                            if (suggestion.w3wAddress.center != null) {
-                                SearchResult.ResolvedAddress(
-                                    query = canonicalQuery,
-                                    providerId = providerId,
-                                    address = suggestion.w3wAddress,
-                                    extras = buildMap {
-                                        put(EXTRAS_KEY_RANK, suggestion.rank.toString())
-                                        suggestion.distanceToFocus?.let {
-                                            put(
-                                                EXTRAS_KEY_DISTANCE_TO_FOCUS,
-                                                it.distance.toString()
-                                            )
-                                        }
-                                    },
-                                )
-                            } else {
-                                SearchResult.SearchSuggestion(
-                                    query = canonicalQuery,
-                                    providerId = providerId,
-                                    extras = buildMap {
-                                        put(EXTRAS_KEY_RANK, suggestion.rank.toString())
-                                        suggestion.distanceToFocus?.let {
-                                            put(
-                                                EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString()
-                                            )
-                                        }
-                                        put(EXTRAS_KEY_TITLE, suggestion.w3wAddress.words)
-                                        suggestion.w3wAddress.nearestPlace
-                                            .takeIf { it.isNotEmpty() }
-                                            ?.let { put(EXTRAS_KEY_SUBTITLE, it) }
-                                    },
-                                )
-                            }
-                        },
-                    )
+                val candidateQueries = strippedQuery.segmentationCandidates()
+                    .take(snapshot.maxSegmentationAttempts.coerceAtLeast(1))
+                    .ifEmpty { listOf(strippedQuery.normalizeToCanonicalForm()) }
 
-                    is W3WResult.Failure -> W3WResult.Failure(result.error)
+                var outcome: W3WResult<List<SearchResult>> = W3WResult.Success(emptyList())
+                for (candidateQuery in candidateQueries) {
+                    when (val result =
+                        textDataSource.autosuggest(candidateQuery, autosuggestOptions)) {
+                        is W3WResult.Success -> {
+                            outcome = W3WResult.Success(
+                                result.value.map { it.toSearchResult(candidateQuery) }
+                            )
+                            if (result.value.isNotEmpty()) break
+                        }
+
+                        is W3WResult.Failure -> {
+                            outcome = W3WResult.Failure(result.error)
+                            break
+                        }
+                    }
                 }
+                outcome
             }
+        }
+
+    private fun W3WSuggestion.toSearchResult(query: String): SearchResult =
+        if (w3wAddress.center != null) {
+            SearchResult.ResolvedAddress(
+                query = query,
+                providerId = providerId,
+                address = w3wAddress,
+                extras = buildMap {
+                    put(EXTRAS_KEY_RANK, rank.toString())
+                    distanceToFocus?.let {
+                        put(EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString())
+                    }
+                },
+            )
+        } else {
+            SearchResult.SearchSuggestion(
+                query = query,
+                providerId = providerId,
+                extras = buildMap {
+                    put(EXTRAS_KEY_RANK, rank.toString())
+                    distanceToFocus?.let {
+                        put(EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString())
+                    }
+                    put(EXTRAS_KEY_TITLE, w3wAddress.words)
+                    w3wAddress.nearestPlace
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { put(EXTRAS_KEY_SUBTITLE, it) }
+                },
+            )
         }
 
     override suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> =
