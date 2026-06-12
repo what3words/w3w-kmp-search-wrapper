@@ -34,11 +34,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
-import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlin.concurrent.Volatile
 
 /** Unique identifier for the Google Places search provider. */
 const val GOOGLE_PLACES_PROVIDER_ID = "GooglePlacesSearchProvider"
@@ -143,6 +143,7 @@ internal class GooglePlacesSearchProvider internal constructor(
                             locationBias = snapshot.locationBias?.toLocationBiasRequest(),
                             origin = snapshot.origin?.let { LatLng(it.lat, it.lng) },
                             includedRegionCodes = snapshot.includedRegionCodes.takeIf { it.isNotEmpty() },
+                            languageCode = snapshot.language.w3wCode
                         )
                     )
                 }

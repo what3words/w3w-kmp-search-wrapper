@@ -10,6 +10,7 @@ internal data class AutocompleteRequest(
     val locationBias: LocationBiasRequest? = null,
     val origin: LatLng? = null,
     val includedRegionCodes: List<String>? = null,
+    val languageCode: String? = null,
 )
 
 @Serializable
