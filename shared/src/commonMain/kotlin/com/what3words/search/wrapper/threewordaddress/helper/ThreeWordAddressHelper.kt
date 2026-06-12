@@ -6,25 +6,48 @@ private const val W3W_WORD = """(?:\p{L}\p{M}*)+"""
 private const val W3W_DOT_DELIMITER = """[.｡。･・︒។։။۔።।]"""
 
 // Same as above, extended with a regular space and non-breaking space.
-private const val W3W_DOT_OR_SPACE_DELIMITER = """[.｡。･・︒។།۔።।\u0020\u00A0]"""
-
-private val W3W_PATTERN = Regex(
-    """^/*$W3W_WORD$W3W_DOT_DELIMITER$W3W_WORD$W3W_DOT_DELIMITER$W3W_WORD$""",
-    setOf(RegexOption.IGNORE_CASE),
-)
+private const val W3W_DOT_OR_SPACE_DELIMITER = """[.｡。･・︒។։။۔።।\u0020\u00A0]"""
 
 private val W3W_PATTERN_ALLOW_SPACES = Regex(
     """^/*$W3W_WORD$W3W_DOT_OR_SPACE_DELIMITER$W3W_WORD$W3W_DOT_OR_SPACE_DELIMITER$W3W_WORD$""",
     setOf(RegexOption.IGNORE_CASE),
 )
 
-internal fun String.isA3WordAddress(allowSpaces: Boolean = false): Boolean =
-    if (allowSpaces) W3W_PATTERN_ALLOW_SPACES.matches(trim()) else W3W_PATTERN.matches(trim())
-
 private val MAY_BE_W3W_PATTERN = Regex(
     """^/*(?:\p{L}\p{M}*){1,}([.｡。･・︒។։။۔።। ,\\\\^_/+'&\\:;|　-]{1,2})(?:\p{L}\p{M}*){1,}([.｡。･・︒។։။۔።। ,\\\\^_/+'&\\:;|　-]{1,2})(?:\p{L}\p{M}*){1,}$""",
 )
+
+private val SPACE_SEPARATOR_REGEX = Regex("""[\u0020\u00A0]""")
+
+private const val W3W_SPACE = """[\u0020\u00A0]"""
+
+private const val SINGLE_WORDS_FORMAT = """$W3W_WORD$W3W_DOT_DELIMITER$W3W_WORD$W3W_DOT_DELIMITER$W3W_WORD"""
+
+private const val PHRASE_SEGMENT = """$W3W_WORD($W3W_SPACE$W3W_WORD){1,3}"""
+
+private const val PHRASES_FORMAT = """$PHRASE_SEGMENT$W3W_DOT_DELIMITER$PHRASE_SEGMENT$W3W_DOT_DELIMITER$PHRASE_SEGMENT"""
+
+private val W3W_PATTERN = Regex(
+    """^/*(?:$SINGLE_WORDS_FORMAT|$PHRASES_FORMAT)$"""
+)
+
 private val NON_LETTER_REGEX = "\\P{L}+".toRegex()
+
+/**
+ * Allow space-separated queries (e.g. "index home raft") in addition to the standard dot-separated.
+ * Don't work with spaced languages such as Vietnamese where spaces occur inside words rather than
+ * between them.
+ */
+internal fun String.isA3WordAddress(allowSpaces: Boolean = false): Boolean {
+    val trimmed = trim()
+
+    // Always check the exact Regex 1 first.
+    // This ensures valid Vietnamese dot-separated queries ALWAYS pass, regardless of the allowSpaces flag.
+    if (W3W_PATTERN.matches(trimmed)) return true
+
+    // Only if it fails the strict test, check if it's a valid space-separated query (for single words)
+    return allowSpaces && W3W_PATTERN_ALLOW_SPACES.matches(trimmed)
+}
 
 /**
  * Normalizes a loose three-word-address-like query by replacing detected separators with dots.
@@ -49,8 +72,6 @@ internal fun String.normalizeThreeWordAddressQuery(): String =
     if (startsWith("///") || endsWith("///")) replace("/", "").trim() else this
 
 internal fun String.lettersOnly(): String = replace(NON_LETTER_REGEX, "").lowercase()
-
-private val SPACE_SEPARATOR_REGEX = Regex("""[\u0020\u00A0]""")
 
 /**
  * Normalises a space-separated three-word address into the canonical dot-separated form by treating

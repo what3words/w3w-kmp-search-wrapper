@@ -20,8 +20,6 @@ import kotlinx.coroutines.withContext
 /** Unique identifier for the three-word address search provider. */
 const val THREE_WORD_ADDRESS_PROVIDER_ID = "ThreeWordAddressSearchProvider"
 
-private const val THREE_WORD_ADDRESS_PREFIX = "///"
-
 /**
  * Search provider for three-word address queries.
  */
@@ -34,8 +32,7 @@ internal class ThreeWordAddressSearchProvider(
 
     override fun canHandle(query: String): Boolean {
         val snapshot = config
-        return query.startsWith(THREE_WORD_ADDRESS_PREFIX) ||
-                query.isA3WordAddress(snapshot.allowSpaceSeparator)
+        return query.isA3WordAddress(snapshot.allowSpaceSeparator)
     }
 
     override suspend fun executeSearch(query: String): W3WResult<List<SearchResult>> =
