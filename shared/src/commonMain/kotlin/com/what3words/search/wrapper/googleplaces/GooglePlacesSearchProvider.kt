@@ -172,7 +172,7 @@ internal class GooglePlacesSearchProvider internal constructor(
                                 prediction.distanceToOrigin?.let {
                                     put(
                                         EXTRAS_KEY_DISTANCE_TO_FOCUS,
-                                        it.toString()
+                                        it.div(1000).toString()
                                     )
                                 }
                                 put(
