@@ -6,7 +6,6 @@ import com.what3words.core.types.common.W3WResult
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
-import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_ZOOM_LEVEL
@@ -135,12 +134,6 @@ internal class MapboxSearchProvider internal constructor(
                                     suggestion.buildSubtitle() ?: suggestion.placeFormatted
                                 )
                                 put(EXTRAS_KEY_MAPBOX_ID, suggestion.mapboxId)
-                                suggestion.distance?.let { distanceInMeters ->
-                                    put(
-                                        EXTRAS_KEY_DISTANCE_TO_FOCUS,
-                                        distanceInMeters.div(1000).toString()
-                                    )
-                                }
                                 put(
                                     EXTRAS_KEY_ZOOM_LEVEL,
                                     zoomLevelForFeatureType(suggestion.featureType).toString()
