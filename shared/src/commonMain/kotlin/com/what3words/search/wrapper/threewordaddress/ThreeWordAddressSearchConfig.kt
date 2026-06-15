@@ -39,6 +39,14 @@ class ThreeWordAddressSearchConfig(
     /** Number of autosuggest results to return. */
     var maxResults: Int = 3,
 
+    /**
+     * Number of results within the [focus] area to return.
+     *
+     * When `null` the underlying API default is used. Set this to bias how many of the
+     * [maxResults] are guaranteed to be near the [focus] location.
+     */
+    var nFocusResults: Int? = null,
+
     /** If true, space-separated queries (e.g. "index home raft") are recognised as three-word
      * addresses in addition to the standard dot-separated form.
      * Defaults to false. */
@@ -60,4 +68,5 @@ internal fun ThreeWordAddressSearchConfig.toAutosuggestOptions(): W3WAutosuggest
         .inputType(W3WAutosuggestInputType.TEXT)
         .includeCoordinates(includeCoordinates)
         .nResults(maxResults)
+        .apply { nFocusResults?.let { nFocusResults(it) } }
         .build()

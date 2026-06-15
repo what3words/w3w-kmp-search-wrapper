@@ -16,6 +16,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ThreeWordAddressSearchProviderTest {
@@ -166,6 +167,37 @@ class ThreeWordAddressSearchProviderTest {
 
         assertNotNull(trackingDataSource.lastAutosuggestOptions)
         assertEquals(10, trackingDataSource.lastAutosuggestOptions!!.nResults)
+    }
+
+    @Test
+    fun executeSearch_respectsNFocusResultsConfig() = runTest {
+        val trackingDataSource = FakeW3WTextDataSource().apply {
+            autosuggestResult = W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
+            convertToCoordinatesResult = W3WResult.Success(fakeAddress())
+        }
+        val config = ThreeWordAddressSearchConfig().apply {
+            nFocusResults = 3
+        }
+        val p = ThreeWordAddressSearchProvider(trackingDataSource, config)
+
+        p.executeSearch("filled.count.soap")
+
+        assertNotNull(trackingDataSource.lastAutosuggestOptions)
+        assertEquals(3, trackingDataSource.lastAutosuggestOptions!!.nFocusResults)
+    }
+
+    @Test
+    fun executeSearch_omitsNFocusResultsWhenNotConfigured() = runTest {
+        val trackingDataSource = FakeW3WTextDataSource().apply {
+            autosuggestResult = W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
+            convertToCoordinatesResult = W3WResult.Success(fakeAddress())
+        }
+        val p = ThreeWordAddressSearchProvider(trackingDataSource, ThreeWordAddressSearchConfig())
+
+        p.executeSearch("filled.count.soap")
+
+        assertNotNull(trackingDataSource.lastAutosuggestOptions)
+        assertNull(trackingDataSource.lastAutosuggestOptions!!.nFocusResults)
     }
 
     @Test
