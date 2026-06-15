@@ -21,7 +21,7 @@ class W3WKmpSearchTree: W3WSearchTreeProtocol {
         
         searchClient.addPlugin(plugin: BritishNationalGridSearch.shared.asHandle(), priority: 9)
         searchClient.addPlugin(plugin: CoordinatesSearch.shared.asHandle(), priority: 8)
-        searchClient.addPlugin(plugin: ThreeWordAddressSearch.shared.asHandle(config: ThreeWordAddressSearchConfig(clippedCountries: [], fallbackLanguage: nil, preferLand: false, focus: nil, clipToCircle: nil, clipToBoundingBox: nil, clipToPolygon: nil, includeCoordinates: true, maxResults: 5, allowSpaceSeparator: true)), priority: 7)
+        searchClient.addPlugin(plugin: ThreeWordAddressSearch.shared.asHandle(config: ThreeWordAddressSearchConfig(clippedCountries: [], fallbackLanguage: nil, preferLand: false, focus: nil, clipToCircle: nil, clipToBoundingBox: nil, clipToPolygon: nil, includeCoordinates: true, maxResults: KotlinInt(int: 5), nFocusResults: nil, allowSpaceSeparator: true)), priority: 7)
         searchClient.addPlugin(plugin: MayBeAThreeWordAddressSearch.shared.asHandle(), priority: 1)
         
         if (false) {
