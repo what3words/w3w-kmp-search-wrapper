@@ -170,7 +170,7 @@ class ThreeWordAddressSearchProviderTest {
     }
 
     @Test
-    fun executeSearch_usesSdkDefaultNResultsWhenMaxResultsNotConfigured() = runTest {
+    fun executeSearch_usesDefaultNResultsWhenMaxResultsNotConfigured() = runTest {
         val trackingDataSource = FakeW3WTextDataSource().apply {
             autosuggestResult = W3WResult.Success(listOf(W3WSuggestion(fakeAddress(), 1, null)))
             convertToCoordinatesResult = W3WResult.Success(fakeAddress())
@@ -180,7 +180,7 @@ class ThreeWordAddressSearchProviderTest {
         p.executeSearch("filled.count.soap")
 
         assertNotNull(trackingDataSource.lastAutosuggestOptions)
-        // maxResults left null -> wrapper doesn't call nResults, SDK builder default (3) applies.
+        // maxResults defaults to 3, matching the underlying API/SDK default.
         assertEquals(3, trackingDataSource.lastAutosuggestOptions!!.nResults)
     }
 

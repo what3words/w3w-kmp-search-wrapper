@@ -5,7 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 class ThreeWordAddressSearchPluginTest {
 
@@ -28,10 +27,10 @@ class ThreeWordAddressSearchPluginTest {
     }
 
     @Test
-    fun config_defaultMaxResultsIsNull() {
+    fun config_defaultMaxResultsIsThree() {
         val config = ThreeWordAddressSearchConfig()
 
-        assertNull(config.maxResults)
+        assertEquals(3, config.maxResults)
     }
 
     @Test

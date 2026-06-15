@@ -36,13 +36,8 @@ class ThreeWordAddressSearchConfig(
     /** If true, suggestion includes coordinates. */
     var includeCoordinates: Boolean = false,
 
-    /**
-     * Number of autosuggest results to return.
-     *
-     * When `null` (the default) the option is not sent and the underlying what3words
-     * API/SDK default is used. Set this to override the number of results returned.
-     */
-    var maxResults: Int? = null,
+    /** Number of autosuggest results to return. Defaults to 3, matching the underlying API/SDK. */
+    var maxResults: Int = 3,
 
     /**
      * Number of results within the [focus] area to return.
@@ -73,6 +68,6 @@ internal fun ThreeWordAddressSearchConfig.toAutosuggestOptions(): W3WAutosuggest
         .preferLand(preferLand)
         .inputType(W3WAutosuggestInputType.TEXT)
         .includeCoordinates(includeCoordinates)
-        .apply { maxResults?.let { nResults(it) } }
+        .nResults(maxResults)
         .apply { nFocusResults?.let { nFocusResults(it) } }
         .build()
