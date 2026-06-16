@@ -40,8 +40,13 @@ class ThreeWordAddressSearchConfig(
     var maxResults: Int = 3,
 
     /** If true, space-separated queries (e.g. "index home raft") are recognised as three-word
-     * addresses in addition to the standard dot-separated form.
-     * Defaults to false. */
+     * addresses in addition to the standard dot-separated form, and every space is converted to a
+     * dot before autosuggest. This also completes partially dotted input such as "index.home raft"
+     * -> "index.home.raft".
+     *
+     * This must be left false for spaced languages such as Vietnamese, where spaces occur inside
+     * words rather than between them; those queries are forwarded verbatim and resolve via their
+     * dot delimiters instead. Defaults to false. */
     var allowSpaceSeparator: Boolean = false
 ) : SearchConfig()
 

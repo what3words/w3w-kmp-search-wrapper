@@ -149,6 +149,147 @@ class ThreeWordAddressSearchProviderTest {
         assertEquals("filled.count.soap", address.query)
     }
 
+    // ── space separator normalisation (allowSpaceSeparator) ───────────────────
+
+    private fun spaceSeparatorConfig() =
+        ThreeWordAddressSearchConfig().apply { allowSpaceSeparator = true }
+
+    @Test
+    fun executeSearch_withSpaceSeparatorOff_sendsRawQueryUnchanged() = runTest {
+        // allowSpaceSeparator defaults to false: the query is forwarded verbatim, /// included.
+        val dataSource = fakeSuccessDataSource()
+
+        provider(dataSource = dataSource).executeSearch("///filled count soap")
+
+        assertEquals("///filled count soap", dataSource.lastAutosuggestInput)
+    }
+
+    @Test
+    fun executeSearch_vietnameseWithSpaceSeparatorOffIsSentAsIs() = runTest {
+        // Vietnamese (spaced language): clients keep allowSpaceSeparator false, so the fully dotted
+        // query is forwarded verbatim and its word-internal spaces are preserved.
+        val dataSource = fakeSuccessDataSource()
+
+        provider(dataSource = dataSource)
+            .executeSearch("///xôi đậu.đậu tằm.vui vẻ")
+
+        assertEquals("///xôi đậu.đậu tằm.vui vẻ", dataSource.lastAutosuggestInput)
+    }
+
+    @Test
+    fun executeSearch_convertsSpaceSeparatedQueryToDots() = runTest {
+        // Case 6: no dots present -> every space becomes a dot.
+        val dataSource = fakeSuccessDataSource()
+
+        provider(config = spaceSeparatorConfig(), dataSource = dataSource)
+            .executeSearch("filled count soap")
+
+        assertEquals("filled.count.soap", dataSource.lastAutosuggestInput)
+    }
+
+    @Test
+    fun executeSearch_trimsSurroundingWhitespaceWhenConverting() = runTest {
+        val dataSource = fakeSuccessDataSource()
+
+        provider(config = spaceSeparatorConfig(), dataSource = dataSource)
+            .executeSearch("  filled count soap  ")
+
+        assertEquals("filled.count.soap", dataSource.lastAutosuggestInput)
+    }
+
+    @Test
+    fun executeSearch_partialDottedInputIsPassedThroughUnchanged() = runTest {
+        // Partial input while typing with no spaces -> nothing to convert -> passthrough.
+        val dataSource = fakeSuccessDataSource()
+
+        provider(config = spaceSeparatorConfig(), dataSource = dataSource)
+            .executeSearch("///filled.cou")
+
+        assertEquals("///filled.cou", dataSource.lastAutosuggestInput)
+    }
+
+    @Test
+    fun executeSearch_makesExactlyOneAutosuggestCall() = runTest {
+        val dataSource = fakeSuccessDataSource()
+
+        provider(config = spaceSeparatorConfig(), dataSource = dataSource)
+            .executeSearch("index home raft")
+
+        assertEquals(1, dataSource.autosuggestInputs.size)
+    }
+
+    // ── unsupported multi-token spaced-language queries (simplified behaviour) ──
+    // Without segmentation these queries are no longer disambiguated. They are documented here to
+    // lock in the simplified single-call behaviour. Clients must keep allowSpaceSeparator false for
+    // spaced languages such as Vietnamese.
+
+    @Test
+    fun executeSearch_noDotSpacedQueryIsNaivelyDottedAndNotSplit() = runTest {
+        // Cases 2 & 10: no dots -> all spaces become dots (no balanced split), single call.
+        val dataSource = fakeSuccessDataSource()
+
+        provider(config = spaceSeparatorConfig(), dataSource = dataSource)
+            .executeSearch("///xoi dau dau tam vui ve")
+
+        assertEquals("///xoi.dau.dau.tam.vui.ve", dataSource.lastAutosuggestInput)
+        assertEquals(1, dataSource.autosuggestInputs.size)
+    }
+
+    @Test
+    fun executeSearch_dotPlusSpaceMixIsCompletedToDots() = runTest {
+        // Fewer than two dots -> remaining space boundaries are filled in.
+        val dataSource = fakeSuccessDataSource()
+
+        provider(config = spaceSeparatorConfig(), dataSource = dataSource)
+            .executeSearch("index.home raft")
+
+        assertEquals("index.home.raft", dataSource.lastAutosuggestInput)
+        assertEquals(1, dataSource.autosuggestInputs.size)
+    }
+
+    @Test
+    fun executeSearch_spacedLanguageQueryWithSeparatorOnIsDottedNotPreserved() = runTest {
+        // With allowSpaceSeparator on, every space becomes a dot. Enabling it for a spaced language
+        // (Vietnamese) therefore mangles word-internal spaces — which is exactly why clients must
+        // keep it off for such languages.
+        val dataSource = fakeSuccessDataSource()
+
+        provider(config = spaceSeparatorConfig(), dataSource = dataSource)
+            .executeSearch("///xôi đậu.đậu tằm vui vẻ")
+
+        assertEquals("///xôi.đậu.đậu.tằm.vui.vẻ", dataSource.lastAutosuggestInput)
+        assertEquals(1, dataSource.autosuggestInputs.size)
+    }
+
+    @Test
+    fun executeSearch_tooManyDotsMakesSingleCallWithNoResults() = runTest {
+        // No spaces to convert -> sent as-is, one call, empty result.
+        val dataSource = dataSourceReturning(autosuggestResult = W3WResult.Success(emptyList()))
+
+        val result = provider(config = spaceSeparatorConfig(), dataSource = dataSource)
+            .executeSearch("///one.two.three.four")
+
+        assertIs<W3WResult.Success<List<SearchResult>>>(result)
+        assertTrue(result.value.isEmpty())
+        assertEquals("///one.two.three.four", dataSource.lastAutosuggestInput)
+        assertEquals(1, dataSource.autosuggestInputs.size)
+    }
+
+    @Test
+    fun executeSearch_apiFailureReturnsErrorAfterSingleCall() = runTest {
+        // Case 9: failure returned after exactly one call.
+        val dataSource = dataSourceReturning(
+            autosuggestResult = W3WResult.Failure(W3WError("autosuggest failed"))
+        )
+
+        val result = provider(config = spaceSeparatorConfig(), dataSource = dataSource)
+            .executeSearch("///xoi dau dau tam vui ve")
+
+        assertIs<W3WResult.Failure<List<SearchResult>>>(result)
+        assertEquals("autosuggest failed", result.error.message)
+        assertEquals(1, dataSource.autosuggestInputs.size)
+    }
+
     // ── config options ───────────────────────────────────────────────────────
 
     @Test
