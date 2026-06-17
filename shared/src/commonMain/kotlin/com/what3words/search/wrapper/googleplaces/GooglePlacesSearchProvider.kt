@@ -11,7 +11,6 @@ import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITL
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_ZOOM_LEVEL
 import com.what3words.search.wrapper.core.SessionManager
 import com.what3words.search.wrapper.core.safeW3WCall
-import com.what3words.search.wrapper.core.language.toIEFTCode
 import com.what3words.search.wrapper.error.MissingAddressIdException
 import com.what3words.search.wrapper.googleplaces.model.AutocompleteRequest
 import com.what3words.search.wrapper.googleplaces.model.AutocompleteResponse
@@ -143,7 +142,7 @@ internal class GooglePlacesSearchProvider internal constructor(
                             locationBias = snapshot.locationBias?.toLocationBiasRequest(),
                             origin = snapshot.origin?.let { LatLng(it.lat, it.lng) },
                             includedRegionCodes = snapshot.includedRegionCodes.takeIf { it.isNotEmpty() },
-                            languageCode = snapshot.language.toIEFTCode()
+                            languageCode = snapshot.language.code
                         )
                     )
                 }

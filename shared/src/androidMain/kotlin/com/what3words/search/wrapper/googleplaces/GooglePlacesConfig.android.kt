@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import com.what3words.core.types.geometry.W3WCoordinates
-import com.what3words.core.types.language.W3WLanguage
 import com.what3words.core.types.language.W3WRFC5646Language
 import com.what3words.search.wrapper.core.SearchConfig
 import java.security.MessageDigest
@@ -15,7 +14,7 @@ private const val HEADER_ANDROID_CERT = "X-Android-Cert"
 
 actual class GooglePlacesConfig actual constructor(
     actual val apiKey: String,
-    actual val language: W3WLanguage,
+    actual val language: W3WRFC5646Language,
     actual val useSessionTokens: Boolean,
     actual val minQueryLength: Int,
     actual val maxResults: Int,
@@ -27,7 +26,7 @@ actual class GooglePlacesConfig actual constructor(
     constructor(
         context: Context,
         apiKey: String,
-        language: W3WLanguage = W3WRFC5646Language.EN_GB,
+        language: W3WRFC5646Language = W3WRFC5646Language.EN_GB,
         useSessionTokens: Boolean = true,
         minQueryLength: Int = 3,
         maxResults: Int = 5,
@@ -53,7 +52,7 @@ actual class GooglePlacesConfig actual constructor(
 
     actual fun copy(
         apiKey: String,
-        language: W3WLanguage,
+        language: W3WRFC5646Language,
         useSessionTokens: Boolean,
         minQueryLength: Int,
         maxResults: Int,
