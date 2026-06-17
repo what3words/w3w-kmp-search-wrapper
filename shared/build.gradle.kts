@@ -1,12 +1,12 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidKotlinMultiplatformLibrary)
-    alias(libs.plugins.skie)
-    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.multiplatform.library)
+    alias(libs.plugins.touchlab.skie)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kmmbridge)
-    alias(libs.plugins.vanniktech.mavenPublish)
+    alias(libs.plugins.vanniktech.maven.publish)
     id("maven-publish")
     id("signing")
 }
@@ -20,10 +20,10 @@ kotlin {
     // Android target configured via com.android.kotlin.multiplatform.library plugin
     android {
         namespace = "com.what3words.search.wrapper.shared"
-        compileSdk = libs.versions.android.compileSdk.get().toInt()
-        minSdk = libs.versions.android.minSdk.get().toInt()
+        compileSdk = libs.versions.compileSdk.get().toInt()
+        minSdk = libs.versions.minSdk.get().toInt()
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.fromTarget(libs.versions.jvmToolchain.get()))
         }
 
         withHostTest {}
@@ -37,19 +37,7 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "W3WKotlinSearchWrapper"
             isStatic = true
-            export(libs.what3words.core)
-
-            // TODO: Remove this when upgrading to Kotlin 2.2.20
-            freeCompilerArgs += listOf("-Xexport-kdoc")
-        }
-
-        // TODO: Remove this when upgrading to Kotlin 2.2.20
-        iosTarget.compilations.configureEach {
-            compileTaskProvider.configure {
-                compilerOptions {
-                    freeCompilerArgs.add("-Xexport-kdoc")
-                }
-            }
+            export(libs.w3w.core.multiplatform)
         }
     }
 
@@ -57,15 +45,15 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
-            api(libs.what3words.core)
+            api(libs.w3w.core.multiplatform)
             implementation(libs.ktor.client.core)
-            implementation(libs.ktor.serialization)
+            implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.json)
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.auth)
         }
         androidMain.dependencies {
-            implementation(libs.ktor.android)
+            implementation(libs.ktor.client.android)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -74,12 +62,12 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.ktor.client.mock)
-            implementation(libs.ktor.serialization)
+            implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.json)
         }
         getByName("androidHostTest") {
             dependencies {
-                implementation(libs.kotlin.testJunit)
+                implementation(libs.kotlin.test.junit)
             }
         }
     }

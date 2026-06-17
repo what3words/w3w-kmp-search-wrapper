@@ -25,6 +25,12 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        mavenLocal()
+    }
+    versionCatalogs {
+        create("libs") {
+            from("com.what3words:versioncatalog:2026.06.00")
+        }
     }
 }
 
