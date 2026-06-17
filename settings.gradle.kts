@@ -29,7 +29,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("com.what3words:versioncatalog:2026.06.00")
+            from("com.what3words:android-version-catalog:2026.06.01")
         }
     }
 }
