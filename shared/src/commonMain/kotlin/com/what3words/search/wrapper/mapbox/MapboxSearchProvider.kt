@@ -10,6 +10,7 @@ import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBT
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_ZOOM_LEVEL
 import com.what3words.search.wrapper.core.SessionManager
+import com.what3words.search.wrapper.core.language.toIEFTCode
 import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.InvalidCoordinatesException
 import com.what3words.search.wrapper.error.MissingAddressIdException
@@ -104,7 +105,7 @@ internal class MapboxSearchProvider internal constructor(
                     parameter(PARAM_ACCESS_TOKEN, snapshot.apiKey)
                     parameter(PARAM_QUERY, query)
                     parameter(PARAM_LIMIT, snapshot.maxResults)
-                    parameter(PARAM_LANGUAGE, snapshot.language.w3wCode)
+                    parameter(PARAM_LANGUAGE, snapshot.language.toIEFTCode())
                     if (snapshot.includedRegionCodes.isNotEmpty()) {
                         parameter(PARAM_COUNTRY, snapshot.includedRegionCodes.joinToString(","))
                     }
