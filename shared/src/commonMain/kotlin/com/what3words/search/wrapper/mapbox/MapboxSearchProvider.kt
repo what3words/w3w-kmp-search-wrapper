@@ -6,7 +6,6 @@ import com.what3words.core.types.common.W3WResult
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
-import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_ZOOM_LEVEL
@@ -22,11 +21,11 @@ import io.ktor.client.request.parameter
 import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
-import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlin.concurrent.Volatile
 
 /** Unique identifier for the Mapbox geocoding search provider. */
 const val MAPBOX_PROVIDER_ID = "MapboxSearchProvider"
@@ -39,6 +38,7 @@ private const val PARAM_QUERY = "q"
 private const val PARAM_SESSION_TOKEN = "session_token"
 private const val PARAM_ACCESS_TOKEN = "access_token"
 private const val PARAM_LIMIT = "limit"
+private const val PARAM_LANGUAGE = "language"
 private const val PARAM_COUNTRY = "country"
 private const val PARAM_PROXIMITY = "proximity"
 private const val EXTRAS_KEY_MAPBOX_ID = "mapbox_id"
@@ -104,6 +104,7 @@ internal class MapboxSearchProvider internal constructor(
                     parameter(PARAM_ACCESS_TOKEN, snapshot.apiKey)
                     parameter(PARAM_QUERY, query)
                     parameter(PARAM_LIMIT, snapshot.maxResults)
+                    parameter(PARAM_LANGUAGE, snapshot.language.code)
                     if (snapshot.includedRegionCodes.isNotEmpty()) {
                         parameter(PARAM_COUNTRY, snapshot.includedRegionCodes.joinToString(","))
                     }
@@ -133,12 +134,6 @@ internal class MapboxSearchProvider internal constructor(
                                     suggestion.buildSubtitle() ?: suggestion.placeFormatted
                                 )
                                 put(EXTRAS_KEY_MAPBOX_ID, suggestion.mapboxId)
-                                suggestion.distance?.let {
-                                    put(
-                                        EXTRAS_KEY_DISTANCE_TO_FOCUS,
-                                        it.toString()
-                                    )
-                                }
                                 put(
                                     EXTRAS_KEY_ZOOM_LEVEL,
                                     zoomLevelForFeatureType(suggestion.featureType).toString()

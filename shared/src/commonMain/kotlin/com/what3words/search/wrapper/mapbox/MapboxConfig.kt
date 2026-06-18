@@ -18,7 +18,7 @@ import com.what3words.search.wrapper.core.SearchConfig
  */
 data class MapboxConfig(
     val apiKey: String,
-    val language: W3WLanguage = W3WRFC5646Language.EN_GB,
+    val language: W3WRFC5646Language = W3WRFC5646Language.EN_GB,
     val minQueryLength: Int = 3,
     val maxResults: Int = 5,
     val includedRegionCodes: List<String> = emptyList(),

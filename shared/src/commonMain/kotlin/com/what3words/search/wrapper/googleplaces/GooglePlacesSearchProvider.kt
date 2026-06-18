@@ -6,7 +6,6 @@ import com.what3words.core.types.common.W3WResult
 import com.what3words.core.types.geometry.W3WCoordinates
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
-import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_ZOOM_LEVEL
@@ -34,11 +33,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
-import kotlin.concurrent.Volatile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlin.concurrent.Volatile
 
 /** Unique identifier for the Google Places search provider. */
 const val GOOGLE_PLACES_PROVIDER_ID = "GooglePlacesSearchProvider"
@@ -143,6 +142,7 @@ internal class GooglePlacesSearchProvider internal constructor(
                             locationBias = snapshot.locationBias?.toLocationBiasRequest(),
                             origin = snapshot.origin?.let { LatLng(it.lat, it.lng) },
                             includedRegionCodes = snapshot.includedRegionCodes.takeIf { it.isNotEmpty() },
+                            languageCode = snapshot.language.code
                         )
                     )
                 }
@@ -168,12 +168,6 @@ internal class GooglePlacesSearchProvider internal constructor(
                                 prediction.structuredFormat?.secondaryText?.text
                                     ?.takeIf { it.isNotEmpty() }
                                     ?.let { put(EXTRAS_KEY_SUBTITLE, it) }
-                                prediction.distanceToOrigin?.let {
-                                    put(
-                                        EXTRAS_KEY_DISTANCE_TO_FOCUS,
-                                        it.toString()
-                                    )
-                                }
                                 put(
                                     EXTRAS_KEY_ZOOM_LEVEL,
                                     zoomLevelForTypes(prediction.types).toString()

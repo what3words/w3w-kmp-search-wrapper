@@ -1,7 +1,6 @@
 package com.what3words.search.wrapper.googleplaces
 
 import com.what3words.core.types.geometry.W3WCoordinates
-import com.what3words.core.types.language.W3WLanguage
 import com.what3words.core.types.language.W3WRFC5646Language
 
 /**
@@ -22,7 +21,7 @@ import com.what3words.core.types.language.W3WRFC5646Language
  */
 expect class GooglePlacesConfig(
     apiKey: String,
-    language: W3WLanguage = W3WRFC5646Language.EN_GB,
+    language: W3WRFC5646Language = W3WRFC5646Language.EN_GB,
     useSessionTokens: Boolean = true,
     minQueryLength: Int = 3,
     maxResults: Int = 5,
@@ -32,7 +31,7 @@ expect class GooglePlacesConfig(
     headers: Map<String, String?> = emptyMap(),
 ) {
     val apiKey: String
-    val language: W3WLanguage
+    val language: W3WRFC5646Language
     val useSessionTokens: Boolean
     val minQueryLength: Int
     val maxResults: Int
@@ -43,7 +42,7 @@ expect class GooglePlacesConfig(
 
     fun copy(
         apiKey: String = this.apiKey,
-        language: W3WLanguage = this.language,
+        language: W3WRFC5646Language = this.language,
         useSessionTokens: Boolean = this.useSessionTokens,
         minQueryLength: Int = this.minQueryLength,
         maxResults: Int = this.maxResults,

@@ -14,8 +14,6 @@ data class Suggestion(
     val address: String? = null,
     @SerialName("context")
     val context: Context,
-    @SerialName("distance")
-    val distance: Int? = null,
     @SerialName("feature_type")
     val featureType: String,
     @SerialName("full_address")
