@@ -10,6 +10,7 @@ import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBT
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_ZOOM_LEVEL
 import com.what3words.search.wrapper.core.SessionManager
+import com.what3words.search.wrapper.core.util.isValidSearchQuery
 import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.InvalidCoordinatesException
 import com.what3words.search.wrapper.error.MissingAddressIdException
@@ -81,8 +82,14 @@ internal class MapboxSearchProvider internal constructor(
 
     override val providerId: String = MAPBOX_PROVIDER_ID
 
-    /** Handles queries that meet or exceed [MapboxConfig.minQueryLength]. */
-    override fun canHandle(query: String): Boolean = query.length >= config.minQueryLength
+    /**
+     * Returns `true` if [query] is a valid search query for this provider.
+     *
+     * A query shorter than [MapboxConfig.minQueryLength] is still considered valid
+     * if it contains CJK (Chinese, Japanese, or Korean) characters.
+     */
+    override fun canHandle(query: String): Boolean = query.isValidSearchQuery(config.minQueryLength)
+
 
     /**
      * GETs `/search/searchbox/v1/suggest` and maps each suggestion to a [SearchResult.SearchSuggestion].
