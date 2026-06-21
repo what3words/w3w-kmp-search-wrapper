@@ -630,4 +630,90 @@ class GooglePlacesSearchProviderTest {
         )
     }
 
+    @Test
+    fun resolve_usesSameSessionTokenAsPrecedingAutocomplete() = runTest {
+        var autocompleteToken: String? = null
+        var detailsToken: String? = null
+        val p = provider(
+            config = defaultConfig.copy(useSessionTokens = true),
+            httpClient = mockClient(onRequest = { req ->
+                if (req.url.encodedPath.contains("autocomplete")) {
+                    autocompleteToken = sessionTokenInBody(readBodyText(req))
+                } else {
+                    detailsToken = req.url.parameters["sessionToken"]
+                }
+            }),
+        )
+
+        val suggestion = assertIs<SearchResult.SearchSuggestion>(
+            assertIs<W3WResult.Success<List<SearchResult>>>(p.executeSearch("main")).value.first()
+        )
+        p.resolve(suggestion)
+
+        assertNotNull(autocompleteToken)
+        assertNotNull(detailsToken)
+        assertEquals(
+            autocompleteToken,
+            detailsToken,
+            "Autocomplete and its terminating place details must share one session token",
+        )
+    }
+
+    @Test
+    fun resolve_doesNotRotateSessionTokenWhenPlaceIdMissing() = runTest {
+        val autocompleteTokens = mutableListOf<String>()
+        val p = provider(
+            config = defaultConfig.copy(useSessionTokens = true),
+            httpClient = mockClient(onRequest = { req ->
+                if (req.url.encodedPath.contains("autocomplete")) {
+                    sessionTokenInBody(readBodyText(req))?.let { autocompleteTokens.add(it) }
+                }
+            }),
+        )
+
+        p.executeSearch("main") // opens session with token T1
+        // No place ID -> no place details request is sent, so the session must stay open (no rotation).
+        p.resolve(
+            SearchResult.SearchSuggestion(
+                query = "main",
+                providerId = GOOGLE_PLACES_PROVIDER_ID,
+                extras = emptyMap(),
+            )
+        )
+        p.executeSearch("main") // should still send token T1
+
+        assertEquals(2, autocompleteTokens.size)
+        assertEquals(
+            autocompleteTokens[0],
+            autocompleteTokens[1],
+            "Session token must not rotate when resolve has no place ID (no terminating request was made)",
+        )
+    }
+
+    @Test
+    fun resolve_placeDetailsFieldMaskStaysAboveIdsOnlyTier() = runTest {
+        var fieldMask: String? = null
+        val p = provider(
+            httpClient = mockClient(onRequest = { req ->
+                if (!req.url.encodedPath.contains("autocomplete")) {
+                    fieldMask = req.headers["X-Goog-FieldMask"]
+                }
+            }),
+        )
+
+        p.resolve(suggestionWith())
+
+        assertNotNull(fieldMask, "Expected X-Goog-FieldMask header on the place details request")
+        // `location` is a billable (Essentials) field. It must be present so the terminating request
+        // is not IDs-Only, which would void session billing and charge every autocomplete per request.
+        assertTrue(
+            fieldMask!!.split(",").map { it.trim() }.contains("location"),
+            "Place details field mask must include a billable field (location); got: $fieldMask",
+        )
+    }
+
+    /** Extracts the `sessionToken` value from a serialized autocomplete request body, or null. */
+    private fun sessionTokenInBody(body: String): String? =
+        Regex("\"sessionToken\":\"([^\"]+)\"").find(body)?.groupValues?.get(1)
+
 }

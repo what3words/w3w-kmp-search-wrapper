@@ -46,7 +46,26 @@ private const val BASE_URL = "https://places.googleapis.com/v1/places"
 private const val AUTOCOMPLETE_PATH = "$BASE_URL:autocomplete"
 private const val HEADER_API_KEY = "X-Goog-Api-Key"
 private const val HEADER_FIELD_MASK = "X-Goog-FieldMask"
-private const val PLACE_DETAILS_FIELD_MASK = "id,displayName,formattedAddress,location"
+
+/**
+ * Field mask for the session-terminating Place Details (New) request.
+ *
+ * The fields requested here decide the billing tier of the whole autocomplete session:
+ * - `location` is a *Place Details Essentials* field, and it is the only field `resolve` actually
+ *   consumes (it is converted to the what3words address). Requesting it keeps the terminating call
+ *   on the **Essentials** tier — the deliberate choice here: the cheaper Place Details charge, with
+ *   the first 12 autocomplete requests per session billed and the rest free.
+ * - Promoting to the **Pro** tier (e.g. by adding `displayName`) would make *all* autocomplete
+ *   requests free but charges a pricier Place Details call. That trade-off was reviewed and Essentials
+ *   was chosen because we only need `location` and the suggestion titles already come from the
+ *   autocomplete response, not from Place Details.
+ *
+ * WARNING: never reduce this to IDs-Only (e.g. just `id`). An IDs-Only terminating request is not
+ * billed, so Google treats the session as token-less and bills *every* autocomplete request
+ * individually with no 12-request cap — an unbounded cost spike. Always keep at least one billable
+ * field (`location`) here.
+ */
+private const val PLACE_DETAILS_FIELD_MASK = "id,location"
 private const val AUTOCOMPLETE_FIELD_MASK =
     "suggestions.placePrediction.placeId," +
             "suggestions.placePrediction.structuredFormat.mainText.text," +
@@ -181,8 +200,10 @@ internal class GooglePlacesSearchProvider internal constructor(
 
     /**
      * Fetches place details for the `placeId` in [data]'s extras and converts the coordinates
-     * to a what3words address. The session token is sent to close the billing session opened by
-     * [executeSearch] and is rotated afterwards regardless of success or failure.
+     * to a what3words address. When a place ID is present, the session token is sent to close the
+     * billing session opened by [executeSearch] and is rotated afterwards regardless of whether the
+     * network call or conversion succeeded. When the place ID is missing no request is made and the
+     * token is left untouched, so the open autocomplete session is not orphaned.
      *
      * @param data Suggestion produced by [executeSearch].
      * @return [W3WResult.Success] with a [SearchResult.ResolvedAddress], or [W3WResult.Failure]
@@ -190,13 +211,13 @@ internal class GooglePlacesSearchProvider internal constructor(
      */
     override suspend fun resolve(data: SearchResult.SearchSuggestion): W3WResult<SearchResult.ResolvedAddress> =
         withContext(Dispatchers.IO) {
+            val placeId = data.extras[EXTRAS_KEY_PLACE_ID]
+                ?: return@withContext W3WResult.Failure(MissingAddressIdException())
+
             // Snapshot once so the request, token decision, and post-call rotation all agree.
             val snapshot = config
             try {
                 safeW3WCall {
-                    val placeId = data.extras[EXTRAS_KEY_PLACE_ID]
-                        ?: return@safeW3WCall W3WResult.Failure(MissingAddressIdException())
-
                     val token = sessionToken(snapshot)
 
                     val response = httpClient.get("$BASE_URL/$placeId") {
@@ -233,8 +254,9 @@ internal class GooglePlacesSearchProvider internal constructor(
                     }
                 }
             } finally {
-                // Rotate the token after every place details fetch to start a fresh billing session.
-                // Use the same snapshot taken at the start so the decision matches the request that just ran.
+                // A place details request was issued (the terminating call of the session), so rotate
+                // the token to start a fresh billing session for the next autocomplete. Runs on success
+                // or failure, using the snapshot taken at the start so it matches the request that ran.
                 if (snapshot.useSessionTokens) sessionManager.refresh()
             }
         }

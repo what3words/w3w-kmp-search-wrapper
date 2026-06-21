@@ -19,6 +19,7 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.respondError
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.HttpRequestData
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -30,6 +31,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -60,10 +62,12 @@ class MapboxSearchProviderTest {
         }
 
     private fun mockClient(
+        onRequest: (HttpRequestData) -> Unit = {},
         suggestBody: () -> String = { suggestionsJson() },
         retrieveBody: () -> String = { retrieveResponseJson() },
     ): HttpClient {
         val engine = MockEngine { request ->
+            onRequest(request)
             val body = when {
                 request.url.encodedPath.contains("retrieve") -> retrieveBody()
                 else -> suggestBody()
@@ -435,5 +439,112 @@ class MapboxSearchProviderTest {
         assertEquals(1, requestCount, "resolve should make exactly one HTTP request")
         assertNotNull(lastRequestPath)
         assertTrue(lastRequestPath.contains("retrieve"), "Request should be to retrieve endpoint")
+    }
+
+    // ── session token ─────────────────────────────────────────────────────────
+
+    @Test
+    fun resolve_usesSameSessionTokenAsPrecedingSuggest() = runTest {
+        var suggestToken: String? = null
+        var retrieveToken: String? = null
+        val p = provider(
+            httpClient = mockClient(onRequest = { req ->
+                val token = req.url.parameters["session_token"]
+                if (req.url.encodedPath.contains("retrieve")) retrieveToken = token
+                else suggestToken = token
+            }),
+        )
+
+        val suggestion = assertIs<SearchResult.SearchSuggestion>(
+            assertIs<W3WResult.Success<List<SearchResult>>>(p.executeSearch("hanoi")).value.first()
+        )
+        p.resolve(suggestion)
+
+        assertNotNull(suggestToken)
+        assertNotNull(retrieveToken)
+        assertEquals(
+            suggestToken,
+            retrieveToken,
+            "Suggest and its terminating retrieve must share one session token",
+        )
+    }
+
+    @Test
+    fun resolve_rotatesSessionTokenBetweenRetrieves() = runTest {
+        val retrieveTokens = mutableListOf<String>()
+        val p = provider(
+            httpClient = mockClient(onRequest = { req ->
+                if (req.url.encodedPath.contains("retrieve")) {
+                    req.url.parameters["session_token"]?.let { retrieveTokens.add(it) }
+                }
+            }),
+        )
+
+        p.resolve(suggestionWith()) // uses token T1, then rotates to T2
+        p.resolve(suggestionWith()) // uses token T2
+
+        assertEquals(2, retrieveTokens.size)
+        assertNotEquals(
+            retrieveTokens[0],
+            retrieveTokens[1],
+            "Session token should rotate after each retrieve",
+        )
+    }
+
+    @Test
+    fun resolve_doesNotRotateSessionTokenWhenMapboxIdMissing() = runTest {
+        val suggestTokens = mutableListOf<String>()
+        val p = provider(
+            httpClient = mockClient(onRequest = { req ->
+                if (!req.url.encodedPath.contains("retrieve")) {
+                    req.url.parameters["session_token"]?.let { suggestTokens.add(it) }
+                }
+            }),
+        )
+
+        p.executeSearch("hanoi") // opens session with token T1
+        // No mapbox id -> no retrieve request is sent, so the session must stay open (no rotation).
+        p.resolve(
+            SearchResult.SearchSuggestion(
+                query = "hanoi",
+                providerId = MAPBOX_PROVIDER_ID,
+                extras = emptyMap(),
+            )
+        )
+        p.executeSearch("hanoi") // should still send token T1
+
+        assertEquals(2, suggestTokens.size)
+        assertEquals(
+            suggestTokens[0],
+            suggestTokens[1],
+            "Session token must not rotate when resolve has no mapbox id (no terminating request was made)",
+        )
+    }
+
+    @Test
+    fun executeSearch_rotatesSessionTokenAfterMaxSuggestCalls() = runTest {
+        val suggestTokens = mutableListOf<String>()
+        val p = provider(
+            httpClient = mockClient(onRequest = { req ->
+                if (!req.url.encodedPath.contains("retrieve")) {
+                    req.url.parameters["session_token"]?.let { suggestTokens.add(it) }
+                }
+            }),
+        )
+
+        // maxSuggestCalls = 50: the first 50 suggests share one token; the 51st rotates to a new one.
+        repeat(51) { p.executeSearch("hanoi") }
+
+        assertEquals(51, suggestTokens.size)
+        assertEquals(
+            suggestTokens[0],
+            suggestTokens[49],
+            "The first 50 suggest calls should share one session token",
+        )
+        assertNotEquals(
+            suggestTokens[49],
+            suggestTokens[50],
+            "The 51st suggest call should rotate to a new session token",
+        )
     }
 }
