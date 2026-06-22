@@ -5,9 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class PlaceDetailsResponse(
     val id: String = "",
-    val formattedAddress: String = "",
-    val location: LatLng? = null,
-    val displayName: LocalizedText? = null
+    val location: LatLng? = null
 )
 
 @Serializable
