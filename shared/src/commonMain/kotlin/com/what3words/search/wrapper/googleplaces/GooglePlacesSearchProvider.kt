@@ -10,6 +10,7 @@ import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBT
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_ZOOM_LEVEL
 import com.what3words.search.wrapper.core.SessionManager
+import com.what3words.search.wrapper.core.util.isValidSearchQuery
 import com.what3words.search.wrapper.core.safeW3WCall
 import com.what3words.search.wrapper.error.MissingAddressIdException
 import com.what3words.search.wrapper.googleplaces.model.AutocompleteRequest
@@ -99,8 +100,13 @@ internal class GooglePlacesSearchProvider internal constructor(
     private fun sessionToken(snapshot: GooglePlacesConfig): String? =
         if (snapshot.useSessionTokens) sessionManager.sessionToken else null
 
-    /** Handles queries that meet or exceed [GooglePlacesConfig.minQueryLength]. */
-    override fun canHandle(query: String): Boolean = query.length >= config.minQueryLength
+    /**
+     * Returns `true` if [query] is a valid search query for this provider.
+     *
+     * A query shorter than [GooglePlacesConfig.minQueryLength] is still considered valid
+     * if it contains CJK (Chinese, Japanese, or Korean) characters.
+     */
+    override fun canHandle(query: String): Boolean = query.isValidSearchQuery(config.minQueryLength)
 
     /** Builds autocomplete request headers from the current [config]. */
     private fun autoCompleteHeaders(snapshot: GooglePlacesConfig): Map<String, String> = buildMap {
