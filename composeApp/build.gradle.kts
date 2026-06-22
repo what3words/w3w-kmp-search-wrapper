@@ -1,9 +1,9 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.compose.compiler)
 }
 
 val secretProperties = Properties().apply {
@@ -15,12 +15,12 @@ val secretProperties = Properties().apply {
 
 android {
     namespace = "com.what3words.search.wrapper"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.what3words.search.wrapper"
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
 
@@ -76,8 +76,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.toVersion(libs.versions.jvmToolchain.get().toInt())
+        targetCompatibility = JavaVersion.toVersion(libs.versions.jvmToolchain.get().toInt())
     }
     // Sources remain in KMP-style directories; map them to standard Android source sets
     sourceSets {
@@ -96,24 +96,24 @@ android {
 }
 
 dependencies {
-    implementation(platform(libs.compose.bom))
+    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.compose.material.icons)
-    implementation(libs.compose.uiToolingPreview)
+    implementation(libs.compose.ui.tooling.preview)
     implementation(libs.androidx.activity.compose)
     implementation(libs.compose.runtime)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material3)
     implementation(libs.compose.ui)
     implementation(libs.compose.components.resources)
-    implementation(libs.androidx.lifecycle.viewmodelCompose)
-    implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(projects.shared)
 
     implementation(libs.w3w.android.wrapper) {
         exclude(group = "com.what3words", module = "w3w-core-android")
     }
-    implementation(libs.what3words.design)
+    implementation(libs.w3w.android.design.library)
 
     testImplementation(libs.kotlin.test)
-    debugImplementation(libs.compose.uiTooling)
+    debugImplementation(libs.compose.ui.tooling)
 }
