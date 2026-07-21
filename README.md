@@ -269,4 +269,6 @@ Full reference: [`iosApp/SearchComponent/AppleMapSearchProvider.swift`](iosApp/S
 
 ## License & contact
 
+This project is available under the [MIT License](LICENSE).
+
 Maintained by [what3words](https://what3words.com). For questions or contributions, contact `development@what3words.com` or open an issue on the [GitHub repository](https://github.com/what3words/w3w-kmp-search-wrapper).
