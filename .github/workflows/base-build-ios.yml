@@ -1,0 +1,100 @@
+name: Base - Build iOS
+
+on:
+  workflow_call:
+    inputs:
+      build-debug:
+        description: If true, the Xcode framework is debuggable. Set to false for optimized release binaries.
+        required: true
+        type: boolean
+      publish-tasks:
+        description: Gradle task used to build and publish the XCFramework.
+        required: false
+        default: "kmmBridgePublish"
+        type: string
+      snapshot:
+        description: If true, appends -SNAPSHOT suffix to VERSION_NAME before building.
+        required: false
+        default: false
+        type: boolean
+      prerelease:
+        description: If true, marks the GitHub release as a pre-release.
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  kmmbridgepublish:
+    concurrency: "kmmbridgepublish-${{ github.repository }}"
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout the repo with tags
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Append -SNAPSHOT to version
+        if: ${{ inputs.snapshot }}
+        run: sed -i '' "s/^VERSION_NAME=.*/&-SNAPSHOT/" gradle.properties
+
+      - uses: touchlab/read-property@0.1
+        id: versionPropertyValue
+        with:
+          file: ./gradle.properties
+          property: VERSION_NAME
+
+      - name: Print version
+        run: echo "Building version ${{ steps.versionPropertyValue.outputs.propVal }}"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "adopt"
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Create or Find Artifact Release
+        id: devrelease
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: "${{ steps.versionPropertyValue.outputs.propVal }}"
+          prerelease: ${{ inputs.prerelease }}
+          make_latest: ${{ !inputs.prerelease }}
+
+      # Remove all existing assets attached to the current version's release to avoid upload conflicts and ensure only the latest build artifacts are present
+      - name: Remove current release assets
+        if: ${{ steps.devrelease.outputs.id != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/releases/${{ steps.devrelease.outputs.id }}/assets --jq '.[].id' | while read -r asset_id; do
+            echo "Deleting asset $asset_id"
+            gh api --method DELETE repos/${{ github.repository }}/releases/assets/$asset_id
+          done
+
+      - name: Build Main
+        run: |
+          ./gradlew ${{ inputs.publish-tasks }} \
+            -PNATIVE_BUILD_TYPE=${{ inputs.build-debug && 'DEBUG' || 'RELEASE' }} \
+            -PGITHUB_ARTIFACT_RELEASE_ID=${{ steps.devrelease.outputs.id }} \
+            -PGITHUB_PUBLISH_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+            -PGITHUB_REPO=${{ github.repository }} \
+            -PENABLE_PUBLISHING=true \
+            --no-daemon --info --stacktrace
+        env:
+          GRADLE_OPTS: -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Xmx3g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=512m"
+
+      - uses: touchlab/ga-update-release-tag@v1
+        id: update-release-tag
+        with:
+          commitMessage: "KMP SPM package release for ${{ steps.versionPropertyValue.outputs.propVal }}"
+          tagMessage: "KMP release version ${{ steps.versionPropertyValue.outputs.propVal }}"
+          tagVersion: ${{ steps.versionPropertyValue.outputs.propVal }}
