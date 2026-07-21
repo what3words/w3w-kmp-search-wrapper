@@ -100,6 +100,13 @@ mavenPublishing {
         description = "Search wrapper for what3words address and other 3rd party search providers"
         inceptionYear = "2026"
         url = "https://github.com/what3words/w3w-kmp-search-wrapper"
+        licenses {
+            license {
+                name = "MIT License"
+                url = "https://github.com/what3words/w3w-kmp-search-wrapper/blob/master/LICENSE"
+                distribution = "https://www.opensource.org/licenses/mit-license.php"
+            }
+        }
         developers {
             developer {
                 id = "what3words"
