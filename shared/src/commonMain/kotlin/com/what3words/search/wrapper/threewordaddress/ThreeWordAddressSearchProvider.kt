@@ -2,6 +2,7 @@ package com.what3words.search.wrapper.threewordaddress
 
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
+import com.what3words.core.types.geometry.m
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
@@ -13,6 +14,7 @@ import com.what3words.search.wrapper.error.MissingSuggestionTitleException
 import com.what3words.search.wrapper.threewordaddress.helper.isA3WordAddress
 import com.what3words.search.wrapper.threewordaddress.helper.normalizeSpaceSeparatedQuery
 import kotlin.concurrent.Volatile
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -55,7 +57,7 @@ internal class ThreeWordAddressSearchProvider(
                                         suggestion.distanceToFocus?.let {
                                             put(
                                                 EXTRAS_KEY_DISTANCE_TO_FOCUS,
-                                                it.distance.toString()
+                                                it.m().roundToInt().toString()
                                             )
                                         }
                                     },
@@ -68,7 +70,8 @@ internal class ThreeWordAddressSearchProvider(
                                         put(EXTRAS_KEY_RANK, suggestion.rank.toString())
                                         suggestion.distanceToFocus?.let {
                                             put(
-                                                EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString()
+                                                EXTRAS_KEY_DISTANCE_TO_FOCUS,
+                                                it.m().roundToInt().toString()
                                             )
                                         }
                                         put(EXTRAS_KEY_TITLE, suggestion.w3wAddress.words)

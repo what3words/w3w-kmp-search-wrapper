@@ -58,7 +58,10 @@ sealed class SearchResult(
         /** Extras key for the rank of a suggestion, indicating its relevance to the search query. */
         const val EXTRAS_KEY_RANK = "rank"
 
-        /** Extras key for the distance (kilometers) from the suggestion to the focus coordinates. */
+        /**
+         * Extras key for the distance from the suggestion to the focus coordinates, as a whole
+         * number of **metres** (e.g. `"340"`). Parse with `toIntOrNull()`.
+         */
         const val EXTRAS_KEY_DISTANCE_TO_FOCUS = "distanceToFocus"
 
         /** Extras key for the recommended map zoom level based on the suggestion's geographic granularity. */

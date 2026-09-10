@@ -3,6 +3,7 @@ package com.what3words.search.wrapper.threewordaddress
 import com.what3words.core.datasource.text.W3WTextDataSource
 import com.what3words.core.types.common.W3WResult
 import com.what3words.core.types.geometry.W3WCoordinates
+import com.what3words.core.types.geometry.m
 import com.what3words.core.types.language.W3WProprietaryLanguage
 import com.what3words.core.types.language.W3WRFC5646Language
 import com.what3words.search.wrapper.core.ResolvableSearchProvider
@@ -20,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlin.concurrent.Volatile
+import kotlin.math.roundToInt
 
 /** Unique identifier for the may-be three-word address search provider. */
 const val MAY_BE_THREE_WORD_ADDRESS_PROVIDER_ID = "MayBeAThreeWordAddressSearchProvider"
@@ -67,7 +69,7 @@ internal class MayBeAThreeWordAddressSearchProvider(
                                 put(EXTRAS_KEY_TITLE, firstSuggestion.w3wAddress.words)
                                 put(EXTRAS_KEY_SUBTITLE, firstSuggestion.w3wAddress.nearestPlace)
                                 firstSuggestion.distanceToFocus?.let {
-                                    put(EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString())
+                                    put(EXTRAS_KEY_DISTANCE_TO_FOCUS, it.m().roundToInt().toString())
                                 }
                                 firstSuggestion.w3wAddress.center?.let {
                                     put(EXTRAS_LATITUDE, it.lat.toString())
