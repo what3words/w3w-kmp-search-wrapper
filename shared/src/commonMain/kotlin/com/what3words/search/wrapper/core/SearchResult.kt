@@ -60,7 +60,7 @@ sealed class SearchResult(
 
         /**
          * Extras key for the distance from the suggestion to the focus coordinates, as a whole
-         * number of **metres** (e.g. `"340"`). Parse with `toIntOrNull()`.
+         * number of **metres**`.
          */
         const val EXTRAS_KEY_DISTANCE_TO_FOCUS = "distanceToFocus"
 

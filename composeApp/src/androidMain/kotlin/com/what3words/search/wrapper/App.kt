@@ -245,8 +245,6 @@ private fun SearchResultItem(
                     Text(subtitle, style = MaterialTheme.typography.bodySmall)
                     distanceInMeters?.let { meters ->
                         Text(
-                            // Pass the composition locale so this hand-rolled row formats the
-                            // same way What3wordsAddressListItem does internally.
                             formatDistance(meters, DisplayUnits.METRIC, locale = compositionLocale),
                             style = MaterialTheme.typography.bodySmall
                         )
