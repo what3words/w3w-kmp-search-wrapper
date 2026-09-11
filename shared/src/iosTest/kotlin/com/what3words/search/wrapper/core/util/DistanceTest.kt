@@ -7,7 +7,8 @@ import kotlin.test.assertEquals
 
 /**
  * Expectations are CoreLocation's WGS84 ellipsoid figures, which differ from a sphere
- * approximation by ~0.3%; the Android actual is covered separately as it needs the framework.
+ * approximation by ~0.3%. The Android actual is a straight delegation to
+ * `Location.distanceBetween`, which needs the framework and so is exercised by the host apps.
  */
 class DistanceTest {
 
