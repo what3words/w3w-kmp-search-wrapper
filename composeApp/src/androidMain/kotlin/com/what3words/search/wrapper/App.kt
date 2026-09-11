@@ -43,7 +43,6 @@ import com.what3words.design.library.ui.components.What3wordsAddressListItem
 import com.what3words.design.library.ui.models.DisplayUnits
 import com.what3words.design.library.ui.models.formatDistance
 import com.what3words.search.wrapper.core.SearchResult
-import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 
@@ -157,7 +156,7 @@ fun App(viewModel: SearchViewModel) {
                         words = resolved.address.words,
                         nearestPlace = resolved.address.nearestPlace,
                         isLand = true,
-                        distanceMeters = resolved.extras[EXTRAS_KEY_DISTANCE_TO_FOCUS]?.toIntOrNull(),
+                        distanceMeters = resolved.distanceInMeters,
                         displayUnits = DisplayUnits.METRIC,
                         isHighlighted = false,
                     )
@@ -235,7 +234,7 @@ private fun SearchResultItem(
 ) {
     val title = suggestion.extras[EXTRAS_KEY_TITLE].orEmpty()
     val subtitle = suggestion.extras[EXTRAS_KEY_SUBTITLE].orEmpty()
-    val distanceToFocus = suggestion.extras[EXTRAS_KEY_DISTANCE_TO_FOCUS].orEmpty()
+    val distanceInMeters = suggestion.distanceInMeters
     val compositionLocale = LocalConfiguration.current.locales[0]
 
     when (suggestion) {
@@ -244,7 +243,7 @@ private fun SearchResultItem(
             supportingContent = {
                 Column {
                     Text(subtitle, style = MaterialTheme.typography.bodySmall)
-                    distanceToFocus.toIntOrNull()?.let { meters ->
+                    distanceInMeters?.let { meters ->
                         Text(
                             // Pass the composition locale so this hand-rolled row formats the
                             // same way What3wordsAddressListItem does internally.
@@ -267,7 +266,7 @@ private fun SearchResultItem(
             words = suggestion.address.words,
             nearestPlace = suggestion.address.nearestPlace,
             isLand = true,
-            distanceMeters = distanceToFocus.toIntOrNull(),
+            distanceMeters = distanceInMeters,
             displayUnits = DisplayUnits.METRIC,
             isHighlighted = false,
             showDivider = false

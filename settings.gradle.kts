@@ -30,11 +30,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("com.what3words:android-version-catalog:2026.06.01")
-
-            // MT-9374: 2.2.0 adds the metres-based `distanceMeters` parameter. Drop this override
-            // once the catalog itself moves to 2.2.0 or later.
-            version("w3w-android-design-library", "2.2.0")
+            from("com.what3words:android-version-catalog:2026.010.01-SNAPSHOT")
         }
     }
 }
