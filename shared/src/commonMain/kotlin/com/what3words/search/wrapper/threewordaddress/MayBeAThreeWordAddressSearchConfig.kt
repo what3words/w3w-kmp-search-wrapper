@@ -33,7 +33,10 @@ class MayBeAThreeWordAddressSearchConfig(
     /** A polygon to clip the autosuggestions to. */
     var clipToPolygon: W3WPolygon? = null,
 
-    /** If true, suggestion includes coordinates. */
+    /**
+     * If true, suggestion includes coordinates. Also required for
+     * `SearchResult.distanceInMeters`, which is measured from the [focus] to those coordinates.
+     */
     var includeCoordinates: Boolean = false
 ) : SearchConfig()
 

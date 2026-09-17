@@ -33,7 +33,10 @@ class ThreeWordAddressSearchConfig(
     /** A polygon to clip the autosuggestions to. */
     var clipToPolygon: W3WPolygon? = null,
 
-    /** If true, suggestion includes coordinates. */
+    /**
+     * If true, suggestion includes coordinates. Also required for
+     * `SearchResult.distanceInMeters`, which is measured from the [focus] to those coordinates.
+     */
     var includeCoordinates: Boolean = false,
 
     /** Number of autosuggest results to return. Defaults to 3, matching the underlying API/SDK. */

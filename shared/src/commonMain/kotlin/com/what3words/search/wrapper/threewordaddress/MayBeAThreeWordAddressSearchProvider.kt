@@ -12,6 +12,7 @@ import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBT
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUGGESTED_ADDRESS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.core.safeW3WCall
+import com.what3words.search.wrapper.core.util.distanceInMetersTo
 import com.what3words.search.wrapper.error.InvalidQueryException
 import com.what3words.search.wrapper.error.MissingCoordinatesException
 import com.what3words.search.wrapper.threewordaddress.helper.lettersOnly
@@ -20,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlin.concurrent.Volatile
+import kotlin.math.roundToInt
 
 /** Unique identifier for the may-be three-word address search provider. */
 const val MAY_BE_THREE_WORD_ADDRESS_PROVIDER_ID = "MayBeAThreeWordAddressSearchProvider"
@@ -66,12 +68,15 @@ internal class MayBeAThreeWordAddressSearchProvider(
                                 put(EXTRAS_KEY_SUGGESTED_ADDRESS, suggestedAddress)
                                 put(EXTRAS_KEY_TITLE, firstSuggestion.w3wAddress.words)
                                 put(EXTRAS_KEY_SUBTITLE, firstSuggestion.w3wAddress.nearestPlace)
-                                firstSuggestion.distanceToFocus?.let {
-                                    put(EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString())
-                                }
-                                firstSuggestion.w3wAddress.center?.let {
-                                    put(EXTRAS_LATITUDE, it.lat.toString())
-                                    put(EXTRAS_LONGITUDE, it.lng.toString())
+                                firstSuggestion.w3wAddress.center?.let { center ->
+                                    put(EXTRAS_LATITUDE, center.lat.toString())
+                                    put(EXTRAS_LONGITUDE, center.lng.toString())
+                                    snapshot.focus?.let { focus ->
+                                        put(
+                                            EXTRAS_KEY_DISTANCE_TO_FOCUS,
+                                            focus.distanceInMetersTo(center).roundToInt().toString()
+                                        )
+                                    }
                                 }
                                 put(EXTRAS_LANGUAGE, firstSuggestion.w3wAddress.language.w3wCode)
                             }
