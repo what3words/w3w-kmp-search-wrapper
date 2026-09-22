@@ -17,7 +17,6 @@ import Foundation
 
 final class AppleMapSearchConfig: SearchConfig {
     var maxResults: Int = 5
-    var focus: CLLocation?
 }
 
 private final class AppleMapSearchProvider: SearchProvider {
@@ -47,22 +46,17 @@ private final class AppleMapSearchProvider: SearchProvider {
         let suggestions = (response.mapItems)
             .prefix(config.maxResults)
             .map { item in
-                var extras = [
-                    keys.EXTRAS_KEY_TITLE: item.name ?? query,
-                    keys.EXTRAS_KEY_SUGGESTED_ADDRESS: item.placemark.name ?? "",
-                    keys.EXTRAS_KEY_SUBTITLE: item.placemark.locality ?? ""
-                ]
-                // `CLLocation.distance(from:)` is already in metres, which is what the extras
-                // contract expects; round to a whole number of metres.
-                if let focus = config.focus, let location = item.placemark.location {
-                    extras[keys.EXTRAS_KEY_DISTANCE_TO_FOCUS] =
-                        String(Int(location.distance(from: focus).rounded()))
-                }
-
-                return SearchResult.SearchSuggestion(
+                SearchResult.SearchSuggestion(
                     query: query,
                     providerId: "apple-map-search",
-                    extras: extras
+                    extras: [
+                        keys.EXTRAS_KEY_TITLE: item.name ?? query,
+                        keys.EXTRAS_KEY_DISTANCE_TO_FOCUS: item.placemark.location.map {
+                            String($0.distance(from: .init(latitude: 0, longitude: 0)))
+                        } ?? "0",
+                        keys.EXTRAS_KEY_SUGGESTED_ADDRESS: item.placemark.name ?? "",
+                        keys.EXTRAS_KEY_SUBTITLE: item.placemark.locality ?? ""
+                    ]
                 )
             }
 

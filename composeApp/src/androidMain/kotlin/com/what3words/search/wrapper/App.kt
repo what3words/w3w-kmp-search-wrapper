@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,8 +40,8 @@ import com.what3words.core.types.domain.W3WCountry
 import com.what3words.core.types.language.W3WProprietaryLanguage
 import com.what3words.design.library.ui.components.What3wordsAddressListItem
 import com.what3words.design.library.ui.models.DisplayUnits
-import com.what3words.design.library.ui.models.formatDistance
 import com.what3words.search.wrapper.core.SearchResult
+import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_DISTANCE_TO_FOCUS
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 
@@ -156,7 +155,7 @@ fun App(viewModel: SearchViewModel) {
                         words = resolved.address.words,
                         nearestPlace = resolved.address.nearestPlace,
                         isLand = true,
-                        distanceMeters = resolved.distanceInMeters,
+                        distance = resolved.extras[EXTRAS_KEY_DISTANCE_TO_FOCUS]?.toIntOrNull(),
                         displayUnits = DisplayUnits.METRIC,
                         isHighlighted = false,
                     )
@@ -234,8 +233,7 @@ private fun SearchResultItem(
 ) {
     val title = suggestion.extras[EXTRAS_KEY_TITLE].orEmpty()
     val subtitle = suggestion.extras[EXTRAS_KEY_SUBTITLE].orEmpty()
-    val distanceInMeters = suggestion.distanceInMeters
-    val compositionLocale = LocalConfiguration.current.locales[0]
+    val distanceToFocus = suggestion.extras[EXTRAS_KEY_DISTANCE_TO_FOCUS].orEmpty()
 
     when (suggestion) {
         is SearchResult.SearchSuggestion -> ListItem(
@@ -243,12 +241,10 @@ private fun SearchResultItem(
             supportingContent = {
                 Column {
                     Text(subtitle, style = MaterialTheme.typography.bodySmall)
-                    distanceInMeters?.let { meters ->
-                        Text(
-                            formatDistance(meters, DisplayUnits.METRIC, locale = compositionLocale),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
+                    if (distanceToFocus.isNotEmpty()) Text(
+                        "$distanceToFocus km",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             },
             leadingContent = {
@@ -264,7 +260,7 @@ private fun SearchResultItem(
             words = suggestion.address.words,
             nearestPlace = suggestion.address.nearestPlace,
             isLand = true,
-            distanceMeters = distanceInMeters,
+            distance = distanceToFocus.toIntOrNull(),
             displayUnits = DisplayUnits.METRIC,
             isHighlighted = false,
             showDivider = false

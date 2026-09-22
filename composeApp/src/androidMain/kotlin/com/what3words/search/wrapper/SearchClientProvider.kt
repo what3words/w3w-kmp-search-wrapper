@@ -31,12 +31,12 @@ class SearchClientProvider(
             install(CoordinatesSearch, priority = 9)
             install(ThreeWordAddressSearch, priority = 8) {
                 includeCoordinates = true
-                focus = currentLocation
+                focus = W3WCoordinates(10.780549, 106.705245)
                 maxResults = 3
             }
             install(MayBeAThreeWordAddressSearch, priority = 1) {
                 includeCoordinates = true
-                focus = currentLocation
+                focus = W3WCoordinates(10.780549, 106.705245)
             }
             block()
         }
@@ -48,9 +48,9 @@ class SearchClientProvider(
                 config = GooglePlacesConfig(
                     context = context,
                     apiKey = BuildConfig.PLACES_API,
-                    origin = currentLocation,
+                    origin = W3WCoordinates(10.780549, 106.705245),
                     locationBias = LocationBias.Circle(
-                        center = currentLocation,
+                        center = W3WCoordinates(10.780549, 106.705245),
                         radiusMeters = 2000.0
                     )
                 ),
@@ -65,7 +65,7 @@ class SearchClientProvider(
                 plugin = MapboxSearch,
                 config = MapboxConfig(
                     apiKey = BuildConfig.MAPBOX_API,
-                    focus = currentLocation
+                    focus = W3WCoordinates(10.780549, 106.705245)
                 ),
                 priority = 1,
             )
@@ -88,9 +88,5 @@ class SearchClientProvider(
             client.threeWordAddressConfig?.clippedCountries = countries
             client.mayBeAThreeWordAddressConfig?.clippedCountries = countries
         }
-    }
-
-    companion object {
-        private val currentLocation = W3WCoordinates(10.7804238, 106.7051357)
     }
 }

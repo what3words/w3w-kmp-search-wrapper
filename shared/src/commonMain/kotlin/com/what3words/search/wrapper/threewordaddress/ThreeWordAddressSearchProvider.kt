@@ -9,12 +9,10 @@ import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_RANK
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
 import com.what3words.search.wrapper.core.safeW3WCall
-import com.what3words.search.wrapper.core.util.distanceInMetersTo
 import com.what3words.search.wrapper.error.MissingSuggestionTitleException
 import com.what3words.search.wrapper.threewordaddress.helper.isA3WordAddress
 import com.what3words.search.wrapper.threewordaddress.helper.normalizeSpaceSeparatedQuery
 import kotlin.concurrent.Volatile
-import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -47,19 +45,17 @@ internal class ThreeWordAddressSearchProvider(
                 when (val result = textDataSource.autosuggest(autosuggestQuery, autosuggestOptions)) {
                     is W3WResult.Success -> W3WResult.Success(
                         result.value.map { suggestion ->
-                            val center = suggestion.w3wAddress.center
-                            if (center != null) {
+                            if (suggestion.w3wAddress.center != null) {
                                 SearchResult.ResolvedAddress(
                                     query = autosuggestQuery,
                                     providerId = providerId,
                                     address = suggestion.w3wAddress,
                                     extras = buildMap {
                                         put(EXTRAS_KEY_RANK, suggestion.rank.toString())
-                                        snapshot.focus?.let { focus ->
+                                        suggestion.distanceToFocus?.let {
                                             put(
                                                 EXTRAS_KEY_DISTANCE_TO_FOCUS,
-                                                focus.distanceInMetersTo(center)
-                                                    .roundToInt().toString()
+                                                it.distance.toString()
                                             )
                                         }
                                     },
@@ -70,6 +66,11 @@ internal class ThreeWordAddressSearchProvider(
                                     providerId = providerId,
                                     extras = buildMap {
                                         put(EXTRAS_KEY_RANK, suggestion.rank.toString())
+                                        suggestion.distanceToFocus?.let {
+                                            put(
+                                                EXTRAS_KEY_DISTANCE_TO_FOCUS, it.distance.toString()
+                                            )
+                                        }
                                         put(EXTRAS_KEY_TITLE, suggestion.w3wAddress.words)
                                         suggestion.w3wAddress.nearestPlace
                                             .takeIf { it.isNotEmpty() }
