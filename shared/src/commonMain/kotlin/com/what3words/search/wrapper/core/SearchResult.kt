@@ -92,4 +92,8 @@ sealed class SearchResult(
      */
     val zoomLevel: Int?
         get() = extras[EXTRAS_KEY_ZOOM_LEVEL]?.toIntOrNull()
+
+    /** Distance from this result to the configured focus, in kilometres, or null if unknown. */
+    val distanceInKm: Double?
+        get() = extras[EXTRAS_KEY_DISTANCE_TO_FOCUS]?.toDoubleOrNull()
 }
