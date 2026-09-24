@@ -41,7 +41,7 @@ import com.what3words.core.types.domain.W3WCountry
 import com.what3words.core.types.language.W3WProprietaryLanguage
 import com.what3words.design.library.ui.components.What3wordsAddressListItem
 import com.what3words.design.library.ui.models.DisplayUnits
-import com.what3words.design.library.ui.models.formatDistanceKm
+import com.what3words.design.library.ui.models.formatDistance
 import com.what3words.search.wrapper.core.SearchResult
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_SUBTITLE
 import com.what3words.search.wrapper.core.SearchResult.Companion.EXTRAS_KEY_TITLE
@@ -246,7 +246,7 @@ private fun SearchResultItem(
                     distanceKm?.let { km ->
                         Text(
                             // Match the formatting What3wordsAddressListItem applies internally.
-                            formatDistanceKm(km, DisplayUnits.METRIC, locale = compositionLocale),
+                            formatDistance(km, DisplayUnits.METRIC, locale = compositionLocale),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
