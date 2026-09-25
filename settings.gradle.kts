@@ -32,6 +32,7 @@ dependencyResolutionManagement {
         create("libs") {
             from("com.what3words:android-version-catalog:2026.09.01")
             version("w3w-android-design-library", "2.2.0-SNAPSHOT")
+            version("w3w-android-wrapper", "4.1.1-SNAPSHOT")
         }
     }
 }
